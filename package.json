@@ -1,0 +1,18 @@
+{
+	"name": "markdown-parser",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"directories": {
+		"test": "tests"
+	},
+	"scripts": {
+		"test": "vitest"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"vitest": "^0.34.3"
+	}
+}
