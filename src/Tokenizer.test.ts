@@ -244,3 +244,117 @@ test("respects lone escaped bar in a table row", () => {
 	const row = new Tokenizer("| \\| |").getTokens();
 	expect(row[1]?.literal).toBe("\\|");
 });
+
+test("parses empty code block", () => {
+	const tokens = new Tokenizer(["```", "```"].join("\n")).getTokens();
+	expect(tokens.length).toBe(4);
+});
+
+test("parses code block language", () => {
+	const tokens = new Tokenizer(["```ad-info", "```"].join("\n")).getTokens();
+	expect(tokens[1]?.type).toBe(TokenType.CODE_SYMBOL);
+});
+
+test("parses code block language lexeme", () => {
+	const tokens = new Tokenizer(["```ad-info", "```"].join("\n")).getTokens();
+	expect(tokens[1]?.lexeme).toBe("ad-info");
+});
+
+test("parses code text", () => {
+	const tokens = new Tokenizer(
+		["```ad-info", "code, code", "more code", "```"].join("\n")
+	).getTokens();
+
+	expect(tokens[5]?.type).toBe(TokenType.CODE);
+});
+
+test("parses code text, multiple line breaks", () => {
+	const tokens = new Tokenizer(
+		["```ad-info", "code, code", "bode fode", "", "mo mo", "```"].join("\n")
+	).getTokens();
+	expect(tokens[3]?.type).toBe(TokenType.CODE);
+});
+
+test("parses code metadata symbol", () => {
+	const tokens = new Tokenizer(
+		["```ad-info", "foo: bar", "", "code, code", "more code", "```"].join(
+			"\n"
+		)
+	).getTokens();
+	expect(tokens[3]?.type).toBe(TokenType.CODE_SYMBOL);
+});
+
+test("parses code metadata value type", () => {
+	const tokens = new Tokenizer(
+		[
+			"```ad-info",
+			"foo: bar code mode",
+			"",
+			"code, code",
+			"more code",
+			"```",
+		].join("\n")
+	).getTokens();
+
+	expect(tokens[6]?.type).toBe(TokenType.TEXT);
+});
+
+test("parses code metadata value lexeme", () => {
+	const tokens = new Tokenizer(
+		[
+			"```ad-info",
+			"foo: bar code mode",
+			"",
+			"code, code",
+			"more code",
+			"```",
+		].join("\n")
+	).getTokens();
+
+	expect(tokens[6]?.lexeme).toBe("bar code mode");
+});
+
+test("parses multiple metadata values", () => {
+	const tokens = new Tokenizer(
+		[
+			"```ad-info",
+			"xar: jam bam",
+			"foo: bar code mode",
+			"",
+			"code, code",
+			"more code",
+			"and more code",
+			"",
+			"and a line break",
+			"```",
+		].join("\n")
+	).getTokens();
+
+	expect(tokens[11]?.lexeme).toBe("bar code mode");
+});
+
+test("parses metadata symbol and value with no spaces", () => {
+	const tokens = new Tokenizer(
+		["```ad-info", "xar:jam bam", "```"].join("\n")
+	).getTokens();
+
+	expect(tokens[3]?.type).toBe(TokenType.CODE);
+});
+
+test("parses metadata symbol with multiple spaces", () => {
+	const tokens = new Tokenizer(
+		["```ad-info", "xar:    jam bam", "```"].join("\n")
+	);
+
+	expect(tokens.getTokens()[6]?.type).toBe(TokenType.TEXT);
+});
+
+test("parses a month keyword", () => {
+	const tokens = new Tokenizer("january").getTokens();
+	expect(tokens[0]?.type).toBe(TokenType.MONTH);
+});
+
+test("parses a day keyword", () => {
+	const tokens = new Tokenizer("monday").getTokens();
+	expect(tokens[0]?.type).toBe(TokenType.DAY);
+});

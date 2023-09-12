@@ -10,6 +10,11 @@ import { TokenType } from "./TokenType";
 export type char = string;
 
 /**
+ * A new line character.
+ */
+export const NL = "\n";
+
+/**
  * A list of characters that are considered punctuation.
  * These characters do NOT parse to special tokens when found in the middle of a word.
  *
@@ -32,6 +37,9 @@ export const PUNCTUATION = [
 	")",
 	"{",
 	"}",
+	"/",
+	"?",
+	"'",
 ];
 
 export class Tokenizer {
@@ -47,13 +55,17 @@ export class Tokenizer {
 		this.source = source;
 	}
 
+	protected accrued(): string {
+		return this.source.substring(this.start, this.current);
+	}
+
 	/**
 	 * Adds a token to the token list.
 	 * @param type The type of token to add
 	 * @param literalValue The literal value of the token. If not provided, the lexeme is used.
 	 */
 	protected addToken(type: TokenType, literalValue?: TokenLiteral): void {
-		const lexeme = this.source.substring(this.start, this.current);
+		const lexeme = this.accrued();
 		const literal = literalValue ?? lexeme;
 		const token = new Token(type, lexeme, literal, this.line, this.column);
 
@@ -168,13 +180,20 @@ export class Tokenizer {
 		);
 	}
 
+	protected isAtDecorator(decorator: string) {
+		return (
+			this.c == decorator.charAt(0) &&
+			this.matchDecorator(decorator.slice(1))
+		);
+	}
+
 	/**
 	 * Returns true if the character is a new line character.
 	 * @param c The character to check
 	 * @returns True if the character is a new line character.
 	 */
 	protected isNewLine(c: char | undefined): boolean {
-		return c === "\n";
+		return c === NL;
 	}
 
 	/**
@@ -200,8 +219,23 @@ export class Tokenizer {
 	 * @param expected The character to match
 	 * @returns True if the next character in the source string matches the expected character.
 	 */
-	protected match(expected: string): boolean {
+	protected match(expected: char): boolean {
 		return !this.eof() && this.peek() === expected;
+	}
+
+	/**
+	 * Returns true if the next characters in the source string match the expected decorator.
+	 * @param decorator The decorator to match, e.g. "```" or "~~~"
+	 * @returns
+	 */
+	protected matchDecorator(decorator: string) {
+		for (let i = 0; i < decorator.length; i++) {
+			if (this.peekFar(i) !== decorator.charAt(i)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -237,11 +271,11 @@ export class Tokenizer {
 	 * Also scans for triple backticks, adding a triple backtick token to the token list if found.
 	 */
 	protected scanBacktick(): void {
-		if (this.match("`") && this.peekNext() === "`") {
-			this.advance(2);
-			this.addToken(TokenType.TRIPLE_BACKTICK);
+		if (this.matchDecorator("``")) {
+			return this.scanCodeBlock();
+		} else {
+			return this.addToken(TokenType.BACKTICK);
 		}
-		this.addToken(TokenType.BACKTICK);
 	}
 
 	/**
@@ -270,6 +304,71 @@ export class Tokenizer {
 		this.scanWordsAndPunctuation();
 	}
 
+	protected scanCodeBlock(): void {
+		this.advance(2);
+		this.addToken(TokenType.TRIPLE_BACKTICK);
+
+		if (this.c !== NL) {
+			this.scanCodeLanguage();
+			this.scanNewLine();
+		}
+
+		this.scanCodeBlockMetadata();
+		this.scanCodeBlockBody();
+	}
+
+	protected scanCodeBlockBody() {
+		while (!this.eof()) {
+			this.scanNewLines();
+
+			while (!this.eof() && !this.match(NL)) {
+				this.advance();
+			}
+
+			if (this.accrued() === "```") {
+				this.addToken(TokenType.TRIPLE_BACKTICK);
+				return;
+			} else {
+				this.addToken(TokenType.CODE);
+			}
+
+			while (this.c === NL) {
+				this.scanNewLine();
+			}
+		}
+	}
+
+	protected scanCodeLanguage() {
+		while (!this.eof() && !this.match(NL)) {
+			this.advance();
+		}
+		this.addToken(TokenType.CODE_SYMBOL);
+	}
+
+	protected scanCodeBlockMetadata(): void {
+		this.scanNewLines();
+
+		if (this.isAtDecorator("```")) {
+			return;
+		}
+
+		while (!this.eof() && !this.matchDecorator("```") && !this.match(NL)) {
+			this.advance();
+			if (this.match(":") && this.isSpace(this.peekNext())) {
+				this.addToken(TokenType.CODE_SYMBOL);
+				this.addToken(TokenType.COLON);
+				this.scanSpaces();
+				// this.scanText();
+				this.scanLine();
+				return this.scanCodeBlockMetadata();
+			}
+		}
+
+		if (this.accrued()) {
+			this.addToken(TokenType.CODE);
+		}
+	}
+
 	/**
 	 * Scans a colon, adding a colon token to the token list.
 	 * Also scans for a second colon, adding a double colon token to the token list if found.
@@ -281,6 +380,10 @@ export class Tokenizer {
 		} else {
 			this.addToken(TokenType.COLON);
 		}
+	}
+
+	protected scanComma(): void {
+		this.addToken(TokenType.COMMA);
 	}
 
 	/**
@@ -401,7 +504,7 @@ export class Tokenizer {
 				} else {
 					return this.scanDash();
 				}
-			case "\n":
+			case NL:
 				return this.scanNewLine();
 			case "\t":
 			case " ":
@@ -456,6 +559,15 @@ export class Tokenizer {
 	}
 
 	/**
+	 * Scans all consecutive new lines, adding a new line token to the token list for each.
+	 */
+	protected scanNewLines(): void {
+		while (this.isNewLine(this.c)) {
+			this.scanNewLine();
+		}
+	}
+
+	/**
 	 * Scans a number, adding a number token to the token list.
 	 */
 	protected scanNumber(): void {
@@ -468,6 +580,14 @@ export class Tokenizer {
 			while (this.isNumeric(this.peek())) {
 				this.advance();
 			}
+		} else if (
+			this.matchDecorator("nd") ||
+			this.matchDecorator("rd") ||
+			this.matchDecorator("th")
+		) {
+			const number = parseInt(this.accrued(), 10);
+			this.advance(2);
+			return this.addToken(TokenType.ORDINAL, number);
 		}
 
 		this.addToken(
@@ -538,7 +658,7 @@ export class Tokenizer {
 	/**
 	 * Scans a space, adding a space token to the token list.
 	 */
-	protected scanSpace(): void {
+	protected scanSpaces(): void {
 		while (this.isSpace(this.peek())) {
 			this.advance();
 		}
@@ -591,12 +711,12 @@ export class Tokenizer {
 	protected scanTableRow(): void {
 		this.scanTableBar();
 
-		while (!this.eof() && !this.match("\n")) {
+		while (!this.eof() && !this.match(NL)) {
 			if (this.c === "\\") {
 				this.advance();
 			}
 
-			while (!this.eof() && !this.match("|") && !this.match("\n")) {
+			while (!this.eof() && !this.match("|") && !this.match(NL)) {
 				if (this.c === "\\") {
 					this.advance();
 				}
@@ -627,6 +747,38 @@ export class Tokenizer {
 		);
 	}
 
+	protected checkForKeyword(accrued: string): TokenType | undefined {
+		switch (accrued.toLowerCase()) {
+			case "true":
+				return TokenType.TRUE;
+			case "false":
+				return TokenType.FALSE;
+			case "january":
+			case "february":
+			case "march":
+			case "april":
+			case "may":
+			case "june":
+			case "july":
+			case "august":
+			case "september":
+			case "october":
+			case "november":
+			case "december":
+				return TokenType.MONTH;
+			case "monday":
+			case "tuesday":
+			case "wednesday":
+			case "thursday":
+			case "friday":
+			case "saturday":
+			case "sunday":
+				return TokenType.DAY;
+		}
+
+		return undefined;
+	}
+
 	/**
 	 * Scans until the end of the current word, adding a word token to the token list.
 	 */
@@ -635,6 +787,12 @@ export class Tokenizer {
 			while (this.isAlphaNumeric(this.peek())) {
 				this.advance();
 			}
+		}
+
+		const accrued = this.accrued();
+		const keywordTokenType = this.checkForKeyword(accrued);
+		if (keywordTokenType) {
+			return this.addToken(keywordTokenType);
 		}
 
 		if (this.isAlphaOrPunctuation(this.peek())) {
@@ -664,12 +822,19 @@ export class Tokenizer {
 	 * Scans an underscore, adding an underscore token to the token list.
 	 */
 	protected scanUnderscore(): void {
-		if (this.match("_")) {
+		if (this.match("_") && this.peekNext() === "_") {
+			this.advance(2);
+			this.addToken(TokenType.TRIPLE_UNDERSCORE);
+		} else if (this.match("_")) {
 			this.advance();
 			this.addToken(TokenType.DUNDERSCORE);
 		} else {
 			this.addToken(TokenType.UNDERSCORE);
 		}
+	}
+
+	protected scanUnknown(): void {
+		this.addToken(TokenType.UNKNOWN);
 	}
 
 	/**
@@ -697,7 +862,7 @@ export class Tokenizer {
 					}
 					break;
 				case " ":
-					this.scanSpace();
+					this.scanSpaces();
 					break;
 				case "(":
 					this.scanLeftParen();
@@ -735,15 +900,19 @@ export class Tokenizer {
 				case ">":
 					this.scanRightAngle();
 					break;
+				case ",":
+					this.scanComma();
+					break;
 				default:
 					if (this.isNumeric(this.c)) {
 						this.scanNumber();
 					} else if (this.isAlphaOrPunctuation(this.c)) {
 						this.scanText();
 					} else {
-						throw new Error(
-							`Unexpected character '${this.c}' at line ${this.line}, column ${this.column}`
-						);
+						this.scanUnknown();
+						// throw new Error(
+						// 	`Unexpected character '${this.c}' at line ${this.line}, column ${this.column}`
+						// );
 					}
 
 					break;
