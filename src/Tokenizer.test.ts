@@ -1,360 +1,326 @@
 import { expect, test } from "vitest";
-import { Tokenizer } from "./Tokenizer";
+import { Tokenizer, getTokens } from "./Tokenizer";
+import { nl } from "./TokenizerBase";
 import { TokenType } from "./TokenType";
-import { TokenTable } from "./TokenTable";
+import { TokenTable, printTokens } from "./TokenTable";
 
-test("scans a header lexeme", () => {
-	const tokenizer = new Tokenizer("## Section 1");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.HEADER);
+test("employs FrontmatterTokenizer to scan frontmatter section", () => {
+	const tokenizer = new Tokenizer(nl("---", "foo: bar", "baz: qux", "---"));
+	const tokens = tokenizer.tokenize();
+	expect(tokens[12]?.type).toBe(TokenType.FRONTMATTER_END);
 });
 
-test("scans a tag in a header", () => {
-	const tokenizer = new Tokenizer("## Section #tag");
-	const tokens = tokenizer.getTokens();
+test("scans header", () => {
+	const tokens = getTokens("### Foo Bar Hammer");
+	expect(tokens[0]?.type).toBe(TokenType.HHASH);
+});
+
+test("scans tags", () => {
+	const tokens = getTokens("Foo #bar");
 	expect(tokens[2]?.type).toBe(TokenType.TAG);
 });
 
-test("scans for tabs", () => {
-	const tokenizer = new Tokenizer("\tone");
-	const tokens = tokenizer.getTokens();
+test("scans tag literal, which is the tag value minus the hash", () => {
+	const tokens = getTokens("Foo #bar");
+	expect(tokens[2]?.literal).toBe("bar");
+});
+
+test("scans tag with dash", () => {
+	const tokens = getTokens("Foo #bar-far");
+	expect(tokens[2]?.literal).toBe("bar-far");
+});
+
+test("scans tag with dash in first position", () => {
+	const tokens = getTokens("Foo #-bar");
+	expect(tokens[2]?.literal).toBe("-bar");
+});
+
+test("does not scan tag in the middle of a word", () => {
+	const tokens = getTokens("Foo bar#far");
+	expect(tokens[2]?.type).toBe(TokenType.RUNE);
+});
+
+test("scans for asterisks", () => {
+	const tokens = getTokens("Foo *bar*");
+	expect(tokens[2]?.type).toBe(TokenType.ASTERISKS);
+});
+
+test("scans asterisks literal, setting the value to the count of asterisks", () => {
+	const tokens = getTokens("Foo ***bar***");
+	expect(tokens[2]?.literal).toBe(3);
+});
+
+test("scans double tildes", () => {
+	const tokens = getTokens("Foo ~~bar~~");
+	expect(tokens[2]?.type).toBe(TokenType.TILDES);
+});
+
+test("scans double tildes at end of word", () => {
+	const tokens = getTokens("Foo ~~bar~~");
+	expect(tokens[4]?.type).toBe(TokenType.TILDES);
+});
+
+test("scans for a simple number", () => {
+	const tokens = getTokens("Foo 1");
+	expect(tokens[2]?.literal).toBe(1);
+});
+
+test("scans for a floating point number", () => {
+	const tokens = getTokens("Foo 1.0");
+	expect(tokens[2]?.literal).toBe(1.0);
+});
+
+test("scans for a floating point number with a positive exponent", () => {
+	const tokens = getTokens("Foo 1.0e1");
+	expect(tokens[2]?.literal).toBe(10.0);
+});
+
+test("scans for a negative number", () => {
+	const tokens = getTokens("Foo -1");
+	expect(tokens[2]?.literal).toBe(-1);
+});
+
+test("scans for a negative floating point number", () => {
+	const tokens = getTokens("Foo -1.0");
+	expect(tokens[2]?.literal).toBe(-1.0);
+});
+
+test("scans for a negative floating point number with a positive exponent", () => {
+	const tokens = getTokens("Foo -1.0e1");
+	expect(tokens[2]?.literal).toBe(-10.0);
+});
+
+test("scans for a positive number with a plus sign", () => {
+	const tokens = getTokens("Foo +1");
+	expect(tokens[2]?.literal).toBe(1);
+});
+
+test("scans a number starting with a decimal point", () => {
+	const tokens = getTokens("Foo .123");
+	expect(tokens[2]?.literal).toBe(0.123);
+});
+
+test("scans an ordinal number and sets literal value to an integer", () => {
+	const tokens = getTokens("Foo 1st");
+	expect(tokens[2]?.literal).toBe(1);
+});
+
+test("scans double colons", () => {
+	const tokens = getTokens("Foo:: bar");
+	expect(tokens[1]?.type).toBe(TokenType.COLONS);
+});
+
+test("ignores double colons in the middle of a word", () => {
+	const tokens = getTokens("Foo:bar");
+	expect(tokens[0]?.type).toBe(TokenType.RUNE);
+});
+
+test("ignores single colons", () => {
+	const tokens = getTokens("Foo: bar");
+	expect(tokens[0]?.type).toBe(TokenType.RUNE);
+});
+
+test("scans for ![[", () => {
+	const tokens = getTokens("Foo ![[thing one]]");
+	expect(tokens[2]?.type).toBe(TokenType.ILL_BRACKET);
+});
+
+test("scans for escape sequences", () => {
+	const tokens = getTokens("Foo \\![[bar");
+	expect(tokens[2]?.type).toBe(TokenType.ESCAPE);
+});
+
+test("escape literal is the escaped character", () => {
+	const tokens = getTokens("Foo \\![[bar");
+	expect(tokens[2]?.literal).toBe("!");
+});
+
+test("scans left paren", () => {
+	const tokens = getTokens("Foo (bar");
+	expect(tokens[2]?.type).toBe(TokenType.L_PAREN);
+});
+
+test("scans right paren", () => {
+	const tokens = getTokens("Foo )bar");
+	expect(tokens[2]?.type).toBe(TokenType.R_PAREN);
+});
+
+test("scans single backtick", () => {
+	const tokens = getTokens("Foo `bar");
+	expect(tokens[2]?.type).toBe(TokenType.BACKTICKS);
+});
+
+test("scans double backticks", () => {
+	const tokens = getTokens("Foo ``bar");
+	expect(tokens[2]?.type).toBe(TokenType.BACKTICKS);
+});
+
+test("scans triple backticks", () => {
+	const tokens = getTokens("Foo ```bar");
+	expect(tokens[2]?.type).toBe(TokenType.CODE_START);
+});
+
+test("scans double dollars", () => {
+	const tokens = getTokens("Foo $$bar");
+	expect(tokens[2]?.type).toBe(TokenType.DOLLARS);
+});
+
+test("scans single dollar", () => {
+	const tokens = getTokens("Foo $bar");
+	expect(tokens[2]?.type).toBe(TokenType.DOLLARS);
+});
+
+test("scans for comments", () => {
+	const tokens = getTokens("here %% is a comment");
+	expect(tokens[3]?.type).toBe(TokenType.COMMENT);
+});
+
+test("scans for comments end", () => {
+	const tokens = getTokens("here %% is a comment %% with more content");
+	expect(tokens[3]?.type).toBe(TokenType.COMMENT);
+});
+
+test("scans comments and sets literal to the comment content", () => {
+	const tokens = getTokens("here %% is a comment %% with more content");
+	expect(tokens[3]?.literal).toBe(" is a comment ");
+});
+
+test("scans an html tag", () => {
+	const tokens = getTokens("here <div>");
+	expect(tokens[2]?.type).toBe(TokenType.HTML_TAG);
+});
+
+test("scans an html tag with properties", () => {
+	const tokens = getTokens('here <div class="foo">');
+	expect(tokens[2]?.literal).toBe('<div class="foo">');
+});
+
+test("scans tabs at start of the line", () => {
+	const tokens = getTokens("\tFoo");
 	expect(tokens[0]?.type).toBe(TokenType.TAB);
 });
 
-test("scans for a number", () => {
-	const tokenizer = new Tokenizer("1");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.NUMBER);
+test("scans for hr at start of line", () => {
+	const tokens = getTokens(nl("xx", "---"));
+	expect(tokens[2]?.type).toBe(TokenType.HR);
 });
 
-test("scans for a number in a sentence", () => {
-	const tokenizer = new Tokenizer("here is a 1 in a sentence");
-	const tokens = tokenizer.getTokens();
-
-	expect(tokens[1]?.type).toBe(TokenType.NUMBER);
+test("doesn't scan an hr if more content is on the line", () => {
+	const tokens = getTokens(nl("xx", "--- yy"));
+	expect(tokens[2]?.type).toBe(TokenType.RUNE);
 });
 
-test("scans for tabs as spaces", () => {
-	const tokenizer = new Tokenizer(" one");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.TAB);
-});
-
-test("sets tab literal to the number of tabs", () => {
-	const tokenizer = new Tokenizer("\t\tone");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.literal).toBe(2);
-});
-
-test("sets tab literal to the number of tabs as spaces", () => {
-	const tokenizer = new Tokenizer("  one");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.literal).toBe(2);
-});
-
-test("scans a header literal, setting the value to the count of hashes", () => {
-	const tokenizer = new Tokenizer("## Section 1");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.literal).toBe(2);
-});
-
-test("scans the EOF", () => {
-	const tokenizer = new Tokenizer("");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.EOF);
-});
-
-test("the EOF has a \\0 literal", () => {
-	const tokenizer = new Tokenizer("## Section");
-	const tokens = tokenizer.getTokens();
-	expect(tokens[2]?.literal).toBe("\0");
-});
-
-test("scans for left bracket", () => {
-	const tokens = new Tokenizer("[link]").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.L_BRACKET);
-});
-
-test("scans for right bracket", () => {
-	const tokens = new Tokenizer("[link]").getTokens();
-	expect(tokens[2]?.type).toBe(TokenType.R_BRACKET);
-});
-
-test("scans for double left brackets", () => {
-	const tokens = new Tokenizer("[[link]]").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.LL_BRACKET);
-});
-
-test("scans for double right brackets", () => {
-	const tokens = new Tokenizer("[[link]]").getTokens();
-	expect(tokens[2]?.type).toBe(TokenType.RR_BRACKET);
-});
-
-test("scans for tags", () => {
-	const tokens = new Tokenizer("here is a #tag in a sentence").getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.TAG);
-});
-
-test("scans for left parenthesis", () => {
-	const tokens = new Tokenizer("(link)").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.L_PAREN);
-});
-
-test("scans for double stars", () => {
-	const tokens = new Tokenizer("**link**").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.STAR_STAR);
-});
-
-test("scans for stars mid-sentence", () => {
-	const tokens = new Tokenizer(
-		"here is a **star** in a sentence"
-	).getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.STAR_STAR);
-});
-
-test("scans for double underscores", () => {
-	const tokens = new Tokenizer("__link__").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.DUNDERSCORE);
-});
-
-test("scans for bullets", () => {
-	const tokens = new Tokenizer("- bullet").getTokens();
+test("scans for a list item", () => {
+	const tokens = getTokens("- Foo");
 	expect(tokens[0]?.type).toBe(TokenType.BULLET);
 });
 
-test("scans for numbered bullets", () => {
-	const tokens = new Tokenizer("11. bullet").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.N_BULLET);
+test("scans for a tab and a list item", () => {
+	const tokens = getTokens("\t\t- Foo");
+	expect(tokens[0]?.type).toBe(TokenType.TAB);
+	expect(tokens[1]?.type).toBe(TokenType.BULLET);
 });
 
-test("returns number of numbered bullet as literal", () => {
-	const tokens = new Tokenizer("112. bullet").getTokens();
-	expect(tokens[0]?.literal).toBe(112);
-});
-
-test("scans for double colon", () => {
-	const tokens = new Tokenizer("foo:: bar").getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.COLON_COLON);
-});
-
-test("scans for checkbox", () => {
-	const tokens = new Tokenizer("- [ ] checkbox").getTokens();
+test("scans for a checkbox", () => {
+	const tokens = getTokens("- [ ] Foo");
 	expect(tokens[0]?.type).toBe(TokenType.CHECKBOX);
 });
 
-test("scans for completed checkbox", () => {
-	const tokens = new Tokenizer("- [x] checkbox").getTokens();
+test("scans for checked checkbox", () => {
+	const tokens = getTokens("- [x] Foo");
 	expect(tokens[0]?.type).toBe(TokenType.CHECKBOX);
 });
 
-test("completed checkbox has literal value of true", () => {
-	const tokens = new Tokenizer("- [x] checkbox").getTokens();
+test("scans for checked checkbox, setting literal to true", () => {
+	const tokens = getTokens("- [x] Foo");
 	expect(tokens[0]?.literal).toBe(true);
 });
 
-test("scans for backticks", () => {
-	const tokens = new Tokenizer("`code`").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.BACKTICK);
+test("scans for unchecked checkbox, setting literal to false", () => {
+	const tokens = getTokens("- [ ] Foo");
+	expect(tokens[0]?.literal).toBe(false);
 });
 
-test("scans for mid-word backticks", () => {
-	const tokens = new Tokenizer("foo`bar`").getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.BACKTICK);
+test("does not scan for checkboxes mid-line", () => {
+	const tokens = getTokens("Foo - [ ]");
+	expect(tokens[4]?.type).toBe(TokenType.L_BRACKET);
 });
 
-test("scans for triple backticks", () => {
-	const tokens = new Tokenizer("```code```").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.TRIPLE_BACKTICK);
+test("scans for a quote block", () => {
+	const tokens = getTokens("> Foo");
+	expect(tokens[0]?.type).toBe(TokenType.HGTHAN);
 });
 
-test("scans for a triple dash", () => {
-	const tokens = new Tokenizer("---").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.TRIPLE_DASH);
+test("scans for a double quote block", () => {
+	const tokens = getTokens("> > Foo");
+	expect(tokens[0]?.type).toBe(TokenType.HGTHAN);
+	expect(tokens[2]?.type).toBe(TokenType.HGTHAN);
 });
 
-test("scans for a dollar", () => {
-	const tokens = new Tokenizer("$").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.DOLLAR);
+test("scans for a numbered bullet", () => {
+	const tokens = getTokens("1. Foo");
+	expect(tokens[0]?.type).toBe(TokenType.N_BULLET);
 });
 
-test("scans for a mid-word dollar", () => {
-	const tokens = new Tokenizer("foo$bar").getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.DOLLAR);
+test("scans for a number if no period suffix is found", () => {
+	const tokens = getTokens("111 Foo");
+	expect(tokens[0]?.type).toBe(TokenType.NUMBER);
 });
 
-test("scans for triple dollar", () => {
-	const tokens = new Tokenizer("$$$").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.TRIPLE_DOLLAR);
+test("scans a numbered bullet, setting literal to the number", () => {
+	const tokens = getTokens("123. Foo");
+	expect(tokens[0]?.literal).toBe(123);
 });
 
-test("scans for a ![[ bracket", () => {
-	const tokens = new Tokenizer("![[link]]").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.ILL_BRACKET);
+test("scans a number if no period suffix is found, setting literal to the number", () => {
+	const tokens = getTokens("123 Foo");
+	expect(tokens[0]?.literal).toBe(123);
 });
 
-test("scans for a quote", () => {
-	const tokens = new Tokenizer("> quote").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.QUOTE);
+test("scans for an underscore hr", () => {
+	const tokens = getTokens("___");
+	expect(tokens[0]?.type).toBe(TokenType.HR);
 });
 
-test("does not scan a quote when no space is present", () => {
-	const tokens = new Tokenizer(">quote").getTokens();
-	expect(tokens[0]?.type).not.toBe(TokenType.QUOTE);
+test("does not scan an hr if other content is on the line", () => {
+	const tokens = getTokens("___ h");
+	expect(tokens[0]?.type).toBe(TokenType.RUNE);
 });
 
-test("scans for a bar", () => {
-	const tokens = new Tokenizer("|").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.BAR);
-});
-
-test("scans for a task", () => {
-	const tokens = new Tokenizer("- [ ] pick up something").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.CHECKBOX);
-});
-
-test("scans for a table row", () => {
-	const row = new Tokenizer("| foo | 1 | baz |").getTokens();
-
-	expect(row[0]?.type).toBe(TokenType.BAR);
-	expect(row[1]?.type).toBe(TokenType.TEXT);
-});
-
-test("scans numbers in a table row", () => {
-	const row = new Tokenizer("| foo | 1 | baz |").getTokens();
-
-	expect(row[3]?.type).toBe(TokenType.NUMBER);
-});
-
-test("scans multi-word text in a table row", () => {
-	const row = new Tokenizer("| foo | 1 | baz bar 123 |").getTokens();
-	expect(row[6]?.type).toBe(TokenType.TEXT);
-});
-
-test("respects escape sequences", () => {
-	const tokens = new Tokenizer("\\#").getTokens();
-	expect(tokens[0]?.type).toBe(TokenType.ESCAPE);
-});
-
-test("respects escaped bar in a table row", () => {
-	const row = new Tokenizer("| a\\| |").getTokens();
-	expect(row[2]?.type).toBe(TokenType.ESCAPE);
-});
-
-test("respects lone escaped bar in a table row", () => {
-	const row = new Tokenizer("| \\| |").getTokens();
-	expect(row[1]?.literal).toBe("\\|");
-});
-
-test("parses empty code block", () => {
-	const tokens = new Tokenizer(["```", "```"].join("\n")).getTokens();
-	expect(tokens.length).toBe(4);
-});
-
-test("parses code block language", () => {
-	const tokens = new Tokenizer(["```ad-info", "```"].join("\n")).getTokens();
-	expect(tokens[1]?.type).toBe(TokenType.CODE_SYMBOL);
-});
-
-test("parses code block language lexeme", () => {
-	const tokens = new Tokenizer(["```ad-info", "```"].join("\n")).getTokens();
-	expect(tokens[1]?.lexeme).toBe("ad-info");
-});
-
-test("parses code text", () => {
-	const tokens = new Tokenizer(
-		["```ad-info", "code, code", "more code", "```"].join("\n")
-	).getTokens();
-
-	expect(tokens[5]?.type).toBe(TokenType.CODE);
-});
-
-test("parses code text, multiple line breaks", () => {
-	const tokens = new Tokenizer(
-		["```ad-info", "code, code", "bode fode", "", "mo mo", "```"].join("\n")
-	).getTokens();
-	expect(tokens[3]?.type).toBe(TokenType.CODE);
-});
-
-test("parses code metadata symbol", () => {
-	const tokens = new Tokenizer(
-		["```ad-info", "foo: bar", "", "code, code", "more code", "```"].join(
-			"\n"
-		)
-	).getTokens();
-	expect(tokens[3]?.type).toBe(TokenType.CODE_SYMBOL);
-});
-
-test("parses code metadata value type", () => {
-	const tokens = new Tokenizer(
-		[
-			"```ad-info",
-			"foo: bar code mode",
-			"",
-			"code, code",
-			"more code",
-			"```",
-		].join("\n")
-	).getTokens();
-
-	expect(tokens[6]?.type).toBe(TokenType.TEXT);
-});
-
-test("parses code metadata value lexeme", () => {
-	const tokens = new Tokenizer(
-		[
-			"```ad-info",
-			"foo: bar code mode",
-			"",
-			"code, code",
-			"more code",
-			"```",
-		].join("\n")
-	).getTokens();
-
-	expect(tokens[6]?.lexeme).toBe("bar code mode");
-});
-
-test("parses multiple metadata values", () => {
-	const tokens = new Tokenizer(
-		[
-			"```ad-info",
-			"xar: jam bam",
-			"foo: bar code mode",
-			"",
-			"code, code",
-			"more code",
-			"and more code",
-			"",
-			"and a line break",
-			"```",
-		].join("\n")
-	).getTokens();
-
-	expect(tokens[11]?.lexeme).toBe("bar code mode");
-});
-
-test("parses metadata symbol and value with no spaces", () => {
-	const tokens = new Tokenizer(
-		["```ad-info", "xar:jam bam", "```"].join("\n")
-	).getTokens();
-
-	expect(tokens[3]?.type).toBe(TokenType.CODE);
-});
-
-test("parses metadata symbol with multiple spaces", () => {
-	const tokens = new Tokenizer(
-		["```ad-info", "xar:    jam bam", "```"].join("\n")
-	);
-
-	expect(tokens.getTokens()[6]?.type).toBe(TokenType.TEXT);
-});
-
-test("parses a month keyword", () => {
-	const tokens = new Tokenizer("january").getTokens();
+test("returns month keyword", () => {
+	const tokens = getTokens("january");
 	expect(tokens[0]?.type).toBe(TokenType.MONTH);
 });
 
-test("parses a day keyword", () => {
-	const tokens = new Tokenizer("monday").getTokens();
+test("returns day keyword", () => {
+	const tokens = getTokens("monday");
 	expect(tokens[0]?.type).toBe(TokenType.DAY);
+});
+
+test("emplys CodeTokenizer to scan code block for code language", () => {
+	const tokens = getTokens(nl("```js", "```"));
+
+	expect(tokens[1]?.type).toBe(TokenType.CODE_LANGUAGE);
+	expect(tokens[1]?.literal).toBe("js");
+});
+
+test("scans code block for code language with spaces", () => {
+	const tokens = getTokens(nl("```js berry", "```"));
+
+	expect(tokens[1]?.literal).toBe("js berry");
+});
+
+test("scans to end of code block", () => {
+	const tokens = getTokens(
+		nl(
+			"```js",
+			"foo: bar",
+			"",
+			"console.log('hello');",
+			"console.log('world');",
+			"```"
+		)
+	);
+
+	expect(tokens[12]?.type).toBe(TokenType.CODE_END);
 });

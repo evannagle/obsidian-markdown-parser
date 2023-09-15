@@ -1,54 +1,164 @@
 export enum TokenType {
-	BACKTICK = "BACKTICK",
-	BAR = "BAR",
-	BULLET = "BULLET",
-	CHECKBOX = "CHECKBOX",
-	CODE = "CODE",
-	CODE_SYMBOL = "CODE_SYMBOL",
-	COLON = "COLON",
-	COLON_COLON = "COLON_COLON",
-	COMMA = "COMMA",
-	DOLLAR = "DOLLAR",
-	DUNDERSCORE = "DUNDERSCORE",
-	EOF = "EOF",
-	ESCAPE = "ESCAPE",
-	HEADER = "HEADER",
-	ILL_BRACKET = "ILL_BRACKET",
-	LL_BRACKET = "LL_BRACKET",
-	LP_ANGLE_BRACKET = "LP_ANGLE_BRACKET",
-	L_ANGLE_BRACKET = "L_ANGLE_BRACKET",
-	L_BRACKET = "L_BRACKET",
-	L_PAREN = "L_PAREN",
-	NL = "NL",
-	NUMBER = "NUMBER",
-	N_BULLET = "N_BULLET",
-	ORDINAL = "ORDINAL",
-	PERCENT_PERCENT = "PERCENT_PERCENT",
-	QUOTE = "QUOTE",
-	RP_ANGLE_BRACKET = "RP_ANGLE_BRACKET",
-	RR_ANGLE_BRACKET = "RR_ANGLE_BRACKET",
-	RR_BRACKET = "RR_BRACKET",
-	R_ANGLE_BRACKET = "R_ANGLE_BRACKET",
-	R_BRACKET = "R_BRACKET",
-	R_PAREN = "R_PAREN",
-	SPACE = "SPACE",
-	STAR = "STAR",
-	STAR_STAR = "STAR_STAR",
+	// Foo
+	// foo
+	// foo-bar
+	// foo_bar
 	SYMBOL = "SYMBOL",
-	TAB = "TAB",
-	TAG = "TAG",
-	TEXT = "TEXT",
-	TILDE_TILDE = "TILDE_TILDE",
-	TRIPLE_BACKTICK = "TRIPLE_BACKTICK",
-	TRIPLE_DASH = "TRIPLE_DASH",
-	TRIPLE_DOLLAR = "TRIPLE_DOLLAR",
-	TRIPLE_UNDERSCORE = "TRIPLE_UNDERSCORE",
-	UNDERSCORE = "UNDERSCORE",
-	UNKNOWN = "UNKNOWN",
 
-	// Keywords
-	DAY = "DAY",
+	// Foo#
+	// -foo
+	// _foo
+	// 1foo
+	// 1-foo
+	// 1_foo
+	// 1foo-bar
+	// 1foo_bar
+	// 1foo#
+	// 1-foo#
+	// 1_foo#
+	RUNE = "RUNE",
+
+	// 1
+	// 1.0
+	// +1
+	// -1
+	// 1.0e1
+	// 1.0e+1
+	// 1.0e-1
+	// 1.0E1
+	// 1.0E+1
+	NUMBER = "NUMBER",
+
+	// " "
+	// \t
+	SPACE = "SPACE",
+
+	// \tTabs are at the start of the line
+	TAB = "TAB",
+
+	// \n
+	BR = "BR",
+
+	// :
+	COLON = "COLON",
+
+	// ::
+	COLONS = "COLONS",
+
+	FRONTMATTER_START = "FRONTMATTER_START",
+	FRONTMATTER_END = "FRONTMATTER_END",
+	FRONTMATTER_KEY = "FRONTMATTER_KEY",
+	FRONTMATTER_BULLET = "FRONTMATTER_BULLET",
+	FRONTMATTER_VALUE = "FRONTMATTER_VALUE",
+
+	CODE_START = "CODE_START",
+	CODE_LANGUAGE = "CODE_LANGUAGE",
+	CODE_KEY = "CODE_KEY",
+	CODE_VALUE = "CODE_VALUE",
+	CODE_SOURCE = "CODE_SOURCE",
+	CODE_END = "CODE_END",
+
+	HHASH = "HHASH",
+	HGTHAN = "HGTHAN",
+
+	L_BRACKET = "L_BRACKET",
+	LL_BRACKET = "LL_BRACKET",
+	ILL_BRACKET = "ILL_BRACKET",
+	R_BRACKET = "R_BRACKET",
+	RR_BRACKET = "RR_BRACKET",
+
+	// **
+	ASTERISKS = "ASTERISKS",
+
+	// 1st
+	// 2nd
+	// 3rd
+	ORDINAL = "ORDINAL",
+
+	// |
+	PIPE = "PIPE",
+
+	// #tag
+	// #tag-foo
+	// #tag_foo
+	// #tag1
+	// #tag-1
+	// #tag_1
+	// #-tag1-foo
+	TAG = "TAG",
+
+	// ~~
+	TILDES = "TILDES",
+
+	// \"
+	ESCAPE = "ESCAPE",
+
+	// (
+	L_PAREN = "L_PAREN",
+
+	// )
+	R_PAREN = "R_PAREN",
+
+	// `
+	// ```
+	BACKTICKS = "BACKTICKS",
+
+	// $
+	// $$
+	// $$$
+	DOLLARS = "DOLLARS",
+
+	// %% This is a comment %%
+	PERCENT_PERCENT = "PERCENT_PERCENT",
+	COMMENT = "COMMENT",
+
+	// <html>
+	// </html>
+	// <div>
+	// <div />
+	// </div>
+	HTML_TAG = "HTML_TAG",
+
+	// ---
+	// ___
+	HR = "HR",
+
+	// - foo
+	// * foo
+	// + foo
+	BULLET = "BULLET",
+	N_BULLET = "N_BULLET",
+
+	// - [ ]
+	// - [x]
+	CHECKBOX = "CHECKBOX",
+
+	// TOKENS
+
+	// january
+	// february
+	// march
+	// april
+	// may
+	// june
+	// july
+	// august
+	// september
+	// october
+	// november
+	// december
 	MONTH = "MONTH",
-	TRUE = "TRUE",
-	FALSE = "FALSE",
+
+	// monday
+	// tuesday
+	// wednesday
+	// thursday
+	// friday
+	// saturday
+	// sunday
+	DAY = "DAY",
+
+	// true
+	// false
+	BOOLEAN = "BOOLEAN",
 }

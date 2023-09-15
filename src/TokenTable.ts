@@ -19,7 +19,7 @@ export class TokenTable {
 		}
 	}
 
-	public dump(): void {
+	public print(): void {
 		console.log(this.toString());
 	}
 
@@ -27,15 +27,17 @@ export class TokenTable {
 		const minColumnWidth = 10;
 
 		const cells: string[][] = [
-			["Type", "Lexeme", "Literal", "Line", "Column"],
+			["No", "Type", "Lexeme", "Literal", "Line", "Column"],
 		];
 
+		let index = 0;
 		let cellSizes: number[] = Array((cells[0] as string[]).length).fill(
 			minColumnWidth
 		);
 
 		for (const token of this.tokens) {
 			const rowCells: string[] = [
+				(index++).toString(),
 				token.type,
 				this.escapeLexeme(token.lexeme),
 				this.escapeLiteral(token.literal),
@@ -64,4 +66,8 @@ export class TokenTable {
 		const table = rows.join("\n");
 		return table;
 	}
+}
+
+export function printTokens(tokens: Token[]): void {
+	new TokenTable(tokens).print();
 }
