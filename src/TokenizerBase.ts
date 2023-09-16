@@ -7,9 +7,14 @@ export const EOF = "\0";
 export const SPACE = [" ", "\t"];
 export const DASH = ["-", "–", "—"];
 
-export type match = string | string[] | undefined;
+export type stringMatch = string | string[] | undefined;
 
-export function flattenMatchesToArray(matches: match[]): string[] {
+/**
+ * Flattens a multi-dimensional array of strings into a one-dimensional array of strings.
+ * @param matches The matches, which are either strings or an array of strings.
+ * @returns All matches in a one-dimensional array of strings.
+ */
+export function flattenStringMatchesToArray(matches: stringMatch[]): string[] {
 	const flatMatches: string[] = [];
 
 	for (const match of matches) {
@@ -152,7 +157,7 @@ export abstract class TokenizerBase {
 	}
 
 	/**
-	 * Returns the characters before the cursor (including the cursor) that have
+	 * Returns the characters before the cursor and including the cursor
 	 * @returns The characters before the cursor (including the cursor) that have
 	 * not yet been parsed and transformed into tokens.
 	 */
@@ -165,8 +170,8 @@ export abstract class TokenizerBase {
 	 * @param c The character or string to check for.
 	 * @returns True if the next sequence of characters is the given character or string.
 	 */
-	protected is(...matches: match[]): boolean {
-		for (const match of flattenMatchesToArray(matches)) {
+	protected is(...matches: stringMatch[]): boolean {
+		for (const match of flattenStringMatchesToArray(matches)) {
 			if (this.chars(match.length) === match) {
 				return true;
 			}
@@ -217,23 +222,13 @@ export abstract class TokenizerBase {
 	 * @param match The character or string to check for.
 	 * @returns True if the next character is the given character or string.
 	 */
-	protected nextIs(...matches: match[]): boolean {
+	protected nextIs(...matches: stringMatch[]): boolean {
 		return (
-			flattenMatchesToArray(matches).filter((match) => {
+			flattenStringMatchesToArray(matches).filter((match) => {
 				// this.nextIs(char)).length > 0;
-				return match !== undefined && this.peak(match.length) === match;
+				return match !== undefined && this.peek(match.length) === match;
 			}).length > 0
 		);
-	}
-
-	/**
-	 * Continues advancing the cursor until the next character is one of the given characters.
-	 * @param match The characters to check for.
-	 */
-	protected nextUntil(...matches: match[]): void {
-		while (!this.nextIs(...matches)) {
-			this.next();
-		}
 	}
 
 	/**
@@ -241,8 +236,18 @@ export abstract class TokenizerBase {
 	 * characters or the end of the line or the end of the file.
 	 * @param match The characters to check for.
 	 */
-	protected nextOnLineUntil(...matches: match[]): void {
+	protected nextOnLineUntil(...matches: stringMatch[]): void {
 		return this.nextUntil(...matches, ...EOL, EOF);
+	}
+
+	/**
+	 * Continues advancing the cursor until the next character is one of the given characters.
+	 * @param match The characters to check for.
+	 */
+	protected nextUntil(...matches: stringMatch[]): void {
+		while (!this.nextIs(...matches)) {
+			this.next();
+		}
 	}
 
 	/**
@@ -250,7 +255,7 @@ export abstract class TokenizerBase {
 	 * @param len The number of characters to peak ahead.
 	 * @returns The characters ahead of the cursor.
 	 */
-	protected peak(len = 1): string {
+	protected peek(len = 1): string {
 		if (this.cursorIndex + 1 + len > this.source.length) return EOF;
 
 		return this.source.slice(
@@ -269,7 +274,7 @@ export abstract class TokenizerBase {
 	 * @param char The character to scan for.
 	 * @param tokenType
 	 */
-	protected scanRepeatedChar(char: match, tokenType: TokenType): void {
+	protected scanRepeatedChar(char: stringMatch, tokenType: TokenType): void {
 		if (!this.is(char)) return;
 
 		let charCount = 1;
@@ -287,15 +292,6 @@ export abstract class TokenizerBase {
 	 */
 	protected scanSpaces() {
 		this.scanRepeatedChar(SPACE, TokenType.SPACE);
-		// if (this.is(SPACE)) {
-		// 	let spaceCount = 1;
-
-		// 	while (this.nextIs(SPACE)) {
-		// 		spaceCount++;
-		// 		this.next();
-		// 	}
-		// 	this.add(TokenType.SPACE, spaceCount);
-		// }
 	}
 
 	/**

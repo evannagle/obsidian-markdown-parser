@@ -10,4 +10,8 @@ export class Token {
 		public line: number,
 		public column: number
 	) {}
+
+	public toString(): string {
+		return this.lexeme;
+	}
 }

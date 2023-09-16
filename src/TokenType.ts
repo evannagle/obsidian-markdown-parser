@@ -161,4 +161,11 @@ export enum TokenType {
 	// true
 	// false
 	BOOLEAN = "BOOLEAN",
+
+	// https://foo.com
+	// http://foo.com
+	URL = "URL",
+
+	// end of file
+	EOF = "EOF",
 }

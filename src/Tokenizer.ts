@@ -21,6 +21,8 @@ export const RUNE_DELIMITERS = [
 	"*",
 	"~~",
 	"::",
+	"(",
+	")",
 ];
 
 export class Tokenizer extends TokenizerBase {
@@ -59,6 +61,23 @@ export class Tokenizer extends TokenizerBase {
 			default:
 				return [TokenType.SYMBOL, symbol];
 		}
+	}
+
+	getTokenTypeFromKeywordOrRune(
+		rune: string
+	): [TokenType, literalValue: any] {
+		const runeLower = rune.toLowerCase();
+
+		if (
+			runeLower.startsWith("http://") ||
+			runeLower.startsWith("https://") ||
+			runeLower.startsWith("ftp://") ||
+			runeLower.startsWith("ftps://")
+		) {
+			return [TokenType.URL, rune];
+		}
+
+		return [TokenType.RUNE, rune];
 	}
 
 	protected scanBackticks(): void {
@@ -354,7 +373,7 @@ export class Tokenizer extends TokenizerBase {
 				case "-":
 				case "+":
 				case ".":
-					if (isNumber(this.peak())) {
+					if (isNumber(this.peek())) {
 						this.scanNumberPart();
 					} else {
 						this.scanSymbolOrRunePart();
@@ -387,7 +406,7 @@ export class Tokenizer extends TokenizerBase {
 	 * 124 foo <-- this is a number
 	 */
 	protected scanNumberAtStartOfLine(): void {
-		while (isNumber(this.peak())) {
+		while (isNumber(this.peek())) {
 			this.next();
 		}
 
@@ -419,7 +438,7 @@ export class Tokenizer extends TokenizerBase {
 	protected scanNumberPart(): void {
 		let tokenType = TokenType.NUMBER;
 
-		while (isNumber(this.peak())) {
+		while (isNumber(this.peek())) {
 			this.next();
 		}
 
@@ -427,7 +446,7 @@ export class Tokenizer extends TokenizerBase {
 			this.next();
 		}
 
-		while (isNumber(this.peak())) {
+		while (isNumber(this.peek())) {
 			this.next();
 		}
 
@@ -439,7 +458,7 @@ export class Tokenizer extends TokenizerBase {
 			this.next();
 		}
 
-		while (isNumber(this.peak())) {
+		while (isNumber(this.peek())) {
 			this.next();
 		}
 
@@ -527,7 +546,9 @@ export class Tokenizer extends TokenizerBase {
 				this.getTokenTypeFromKeywordOrSymbol(fullSymbol);
 			this.add(symbolType, literalValue);
 		} else {
-			this.add(TokenType.RUNE);
+			const [symbolType, literalValue] =
+				this.getTokenTypeFromKeywordOrRune(fullSymbol);
+			this.add(symbolType, literalValue);
 		}
 		// this.add(isSymbol ? TokenType.SYMBOL : TokenType.RUNE);
 	}
@@ -552,8 +573,8 @@ export class Tokenizer extends TokenizerBase {
 		}
 
 		while (
-			isAlpha(this.peak()) ||
-			isNumber(this.peak()) ||
+			isAlpha(this.peek()) ||
+			isNumber(this.peek()) ||
 			this.nextIs("_", "-")
 		) {
 			this.next();
@@ -589,6 +610,7 @@ export class Tokenizer extends TokenizerBase {
 			this.scanLine();
 		}
 
+		this.add(TokenType.EOF);
 		return this.tokens;
 	}
 }

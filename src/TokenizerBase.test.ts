@@ -22,8 +22,8 @@ export class MockTokenizer extends TokenizerBase {
 		return super.nextIs(c);
 	}
 
-	public peak(len = 1): string {
-		return super.peak(len);
+	public peek(len = 1): string {
+		return super.peek(len);
 	}
 
 	public tokenize(): Token[] {
@@ -58,12 +58,12 @@ test("moveCursor(1) updates queued chars", () => {
 
 test("peak returns the next character", () => {
 	const tokenizer = new MockTokenizer(chars);
-	expect(tokenizer.peak()).toBe("b");
+	expect(tokenizer.peek()).toBe("b");
 });
 
 test("peak(2) returns the next two characters", () => {
 	const tokenizer = new MockTokenizer(chars);
-	expect(tokenizer.peak(2)).toBe("bc");
+	expect(tokenizer.peek(2)).toBe("bc");
 });
 
 test("clearQueuedChars() clears the queued chars", () => {

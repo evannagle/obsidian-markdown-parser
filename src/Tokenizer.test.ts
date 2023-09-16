@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 import { Tokenizer, getTokens } from "./Tokenizer";
 import { nl } from "./TokenizerBase";
 import { TokenType } from "./TokenType";
-import { TokenTable, printTokens } from "./TokenTable";
 
 test("employs FrontmatterTokenizer to scan frontmatter section", () => {
 	const tokenizer = new Tokenizer(nl("---", "foo: bar", "baz: qux", "---"));
@@ -323,4 +322,19 @@ test("scans to end of code block", () => {
 	);
 
 	expect(tokens[12]?.type).toBe(TokenType.CODE_END);
+});
+
+test("handles non-utf8 characters", () => {
+	const tokens = getTokens("foo 😄 bar");
+	expect(tokens[2]?.type).toBe(TokenType.RUNE);
+});
+
+test("scans an https URL", () => {
+	const tokens = getTokens("foo https://google.com bar");
+	expect(tokens[2]?.type).toBe(TokenType.URL);
+});
+
+test("scans an http URL", () => {
+	const tokens = getTokens("foo http://google.com bar");
+	expect(tokens[2]?.type).toBe(TokenType.URL);
 });
