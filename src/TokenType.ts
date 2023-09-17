@@ -43,7 +43,7 @@ export enum TokenType {
 	COLON = "COLON",
 
 	// ::
-	COLONS = "COLONS",
+	COLON_COLON = "COLON_COLON",
 
 	FRONTMATTER_START = "FRONTMATTER_START",
 	FRONTMATTER_END = "FRONTMATTER_END",
@@ -68,7 +68,8 @@ export enum TokenType {
 	RR_BRACKET = "RR_BRACKET",
 
 	// **
-	ASTERISKS = "ASTERISKS",
+	ASTERISK = "ASTERISK",
+	ASTERISK_ASTERISK = "ASTERISK_ASTERISK",
 
 	// 1st
 	// 2nd
@@ -88,7 +89,7 @@ export enum TokenType {
 	TAG = "TAG",
 
 	// ~~
-	TILDES = "TILDES",
+	TILDE_TILDE = "TILDES",
 
 	// \"
 	ESCAPE = "ESCAPE",

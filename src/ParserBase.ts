@@ -1,6 +1,6 @@
-import { Statement } from "./Statement";
 import { Token } from "./Token";
 import { TokenType } from "./TokenType";
+import { Statement } from "./statements/Statement";
 
 export const EOL_TOKEN = [TokenType.BR, TokenType.EOF];
 export const SPACE_TOKEN = [TokenType.SPACE, TokenType.TAB];
@@ -27,7 +27,7 @@ export function flattenTokenMatchesToArray(matches: tokenMatch[]): TokenType[] {
 }
 
 export abstract class ParserBase {
-	protected tokens: Token[];
+	public tokens: Token[];
 	protected token: Token;
 	protected queuedIndex = 0;
 	protected cursorIndex = 0;
@@ -53,24 +53,15 @@ export abstract class ParserBase {
 		);
 	}
 
-	/**
-	 * Returns the queued tokens and clears the queue.
-	 * @returns The tokens before the cursor and including the cursor.
-	 */
-	protected clearQueuedTokens(): Token[] {
-		const queuedTokens = this.getQueuedTokens();
-		this.cursorIndex++;
-		this.queuedIndex = this.cursorIndex;
-		this.token = this.tokenAt(this.cursorIndex);
-		return queuedTokens;
-	}
+	protected chompWhile(match: tokenMatch): Token[] {
+		const matches = flattenTokenMatchesToArray([match]);
+		const tokens: Token[] = [];
 
-	/**
-	 * Returns the tokens before the cursor and including the cursor.
-	 * @returns
-	 */
-	protected getQueuedTokens(): Token[] {
-		return this.tokens.slice(this.queuedIndex, this.cursorIndex + 1);
+		while (this.is(...matches)) {
+			tokens.push(this.chomp(match));
+		}
+
+		return tokens;
 	}
 
 	/**
@@ -125,16 +116,6 @@ export abstract class ParserBase {
 				return match !== undefined && this.peek().type === match;
 			}).length > 0
 		);
-	}
-
-	/**
-	 * Continues advancing the cursor until the next token is one of the given tokens.
-	 * @param matches The tokens to check for.
-	 */
-	protected nextUntil(...matches: tokenMatch[]): void {
-		while (!this.nextIs(...matches)) {
-			this.next();
-		}
 	}
 
 	/**

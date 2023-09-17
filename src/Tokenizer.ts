@@ -335,7 +335,11 @@ export class Tokenizer extends TokenizerBase {
 					this.scanTagPart();
 					break;
 				case "*":
-					this.scanRepeatedChar("*", TokenType.ASTERISKS);
+					if (this.nextIs("*")) {
+						this.moveCursor(1).add(TokenType.ASTERISK_ASTERISK);
+					} else {
+						this.add(TokenType.ASTERISK);
+					}
 					break;
 				case "`":
 					this.scanBackticks();
@@ -345,14 +349,14 @@ export class Tokenizer extends TokenizerBase {
 					break;
 				case "~":
 					if (this.nextIs("~")) {
-						this.scanRepeatedChar("~", TokenType.TILDES);
+						this.moveCursor(1).add(TokenType.TILDE_TILDE);
 					} else {
 						this.scanSymbolOrRunePart();
 					}
 					break;
 				case ":":
 					if (this.nextIs(": ")) {
-						this.moveCursor(1).add(TokenType.COLONS, 2);
+						this.moveCursor(1).add(TokenType.COLON_COLON);
 					} else {
 						this.scanSymbolOrRunePart();
 					}
@@ -416,6 +420,8 @@ export class Tokenizer extends TokenizerBase {
 		} else {
 			this.scanNumberPart();
 		}
+
+		this.scanLinePart();
 	}
 
 	/**

@@ -41,22 +41,22 @@ test("does not scan tag in the middle of a word", () => {
 
 test("scans for asterisks", () => {
 	const tokens = getTokens("Foo *bar*");
-	expect(tokens[2]?.type).toBe(TokenType.ASTERISKS);
+	expect(tokens[2]?.type).toBe(TokenType.ASTERISK);
 });
 
-test("scans asterisks literal, setting the value to the count of asterisks", () => {
-	const tokens = getTokens("Foo ***bar***");
-	expect(tokens[2]?.literal).toBe(3);
+test("scans double asterisks", () => {
+	const tokens = getTokens("Foo **bar**");
+	expect(tokens[2]?.type).toBe(TokenType.ASTERISK_ASTERISK);
 });
 
 test("scans double tildes", () => {
 	const tokens = getTokens("Foo ~~bar~~");
-	expect(tokens[2]?.type).toBe(TokenType.TILDES);
+	expect(tokens[2]?.type).toBe(TokenType.TILDE_TILDE);
 });
 
 test("scans double tildes at end of word", () => {
 	const tokens = getTokens("Foo ~~bar~~");
-	expect(tokens[4]?.type).toBe(TokenType.TILDES);
+	expect(tokens[4]?.type).toBe(TokenType.TILDE_TILDE);
 });
 
 test("scans for a simple number", () => {
@@ -106,7 +106,7 @@ test("scans an ordinal number and sets literal value to an integer", () => {
 
 test("scans double colons", () => {
 	const tokens = getTokens("Foo:: bar");
-	expect(tokens[1]?.type).toBe(TokenType.COLONS);
+	expect(tokens[1]?.type).toBe(TokenType.COLON_COLON);
 });
 
 test("ignores double colons in the middle of a word", () => {

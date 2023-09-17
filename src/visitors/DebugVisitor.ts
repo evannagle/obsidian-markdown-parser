@@ -1,14 +1,7 @@
-import {
-	InternalLinkStatement,
-	HeadingStatement,
-	PlainTextStatement,
-	RichTextStatement,
-	Statement,
-	IVisitor,
-	ExternalLinkStatement,
-} from "src/Statement";
+import { Statement } from "src/statements/Statement";
+import { Visitor } from "./Visitor";
 
-export class DebugVisitor implements IVisitor {
+export class DebugVisitor extends Visitor {
 	indent = 0;
 
 	protected log(...args: string[]): void {
@@ -20,33 +13,13 @@ export class DebugVisitor implements IVisitor {
 		}
 	}
 
-	protected visit(s: Statement) {
+	protected override visit(s: Statement) {
 		const name = "<" + s.constructor.name.replace("Statement", "") + ">";
 
 		this.log(name, s.toString().replace(/\n/g, "\\n"));
 		this.indent++;
 		s.visitChildren(this);
 		this.indent--;
-	}
-
-	visitExternalLink(expr: ExternalLinkStatement): void {
-		this.visit(expr);
-	}
-
-	visitHeading(heading: HeadingStatement): void {
-		this.visit(heading);
-	}
-
-	visitInternalLink(link: InternalLinkStatement): void {
-		this.visit(link);
-	}
-
-	visitRichText(richText: RichTextStatement): void {
-		this.visit(richText);
-	}
-
-	visitPlainText(text: PlainTextStatement): void {
-		this.visit(text);
 	}
 }
 

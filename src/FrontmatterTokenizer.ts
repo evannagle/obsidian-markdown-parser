@@ -57,7 +57,7 @@ export class FrontMatterTokenizer extends TokenizerBase {
 	public tokenize(): Token[] {
 		while (!this.is(EOF)) {
 			if (this.is(EOL)) {
-				this.add(TokenType.BR);
+				this.scanBrs();
 			} else if (this.is(DASH)) {
 				this.scanListItem();
 			} else if (this.is(SPACE)) {
