@@ -13,7 +13,7 @@ export class DebugVisitor extends Visitor {
 		}
 	}
 
-	protected override visit(s: Statement) {
+	public override visit(s: Statement) {
 		const name = "<" + s.constructor.name.replace("Statement", "") + ">";
 
 		this.log(name, s.toString().replace(/\n/g, "\\n"));

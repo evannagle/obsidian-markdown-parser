@@ -5,9 +5,6 @@ import {
 	FrontmatterItemStatement,
 	FrontmatterListStatement,
 } from "./statements";
-import { printStatement } from "src/visitors/DebugVisitor";
-import { scanTokens } from "src/scanners/Scanner";
-import { printTokens } from "src/tokens/TokenTable";
 
 describe("Parser", () => {
 	it("parses frontmatter key", () => {

@@ -17,8 +17,6 @@ import {
 } from "./statements";
 
 import { Scanner } from "src/scanners/Scanner";
-import { BR } from "src/scanners/ScannerBase";
-import { Token } from "src/tokens/Token";
 
 export const PLAINTEXT_TOKENS = [
 	TokenType.SYMBOL,
