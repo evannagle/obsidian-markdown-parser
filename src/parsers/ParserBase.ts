@@ -1,9 +1,9 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
+import { Token } from "../tokens/Token";
+import { TokenType } from "../tokens/TokenType";
 import { Statement } from "./statements/Statement";
 
-export const EOL_TOKEN = [TokenType.BR, TokenType.EOF];
-export const SPACE_TOKEN = [TokenType.SPACE, TokenType.TAB];
+export const EOL_TOKENS = [TokenType.BR, TokenType.EOF];
+export const SPACE_TOKENS = [TokenType.SPACE, TokenType.TAB];
 
 export type tokenMatch = TokenType | TokenType[] | undefined;
 
@@ -27,16 +27,34 @@ export function flattenTokenMatchesToArray(matches: tokenMatch[]): TokenType[] {
 }
 
 export abstract class ParserBase {
-	public tokens: Token[];
+	protected tokens: Token[];
 	protected token: Token;
 	protected queuedIndex = 0;
 	protected cursorIndex = 0;
+	private _snapQueuedIndex = 0;
+	private _snapCursorIndex = 0;
 
 	public constructor(tokens: Token[]) {
 		this.tokens = tokens;
 		this.moveCursor(0);
 	}
 
+	/**
+	 * Called if the tokens need to be parsed to a given point before being checked in.
+	 * If the parser doesn't find the closing token or token pattern it expects,
+	 * `this.revertCheckout()` should be called.
+	 */
+	protected checkout(): void {
+		this._snapQueuedIndex = this.queuedIndex;
+		this._snapCursorIndex = this.cursorIndex;
+	}
+
+	/**
+	 * Chomps the current token and returns it if it matches the given token.
+	 * @param match The token to chomp. If the current token is not this token, an error is thrown.
+	 *				If an error should not be thrown, use `maybeChomp()` instead.
+	 * @returns
+	 */
 	protected chomp(match: tokenMatch): Token {
 		const matches = flattenTokenMatchesToArray([match]);
 
@@ -53,12 +71,33 @@ export abstract class ParserBase {
 		);
 	}
 
+	/**
+	 * Chomps tokens until the current token does not match.
+	 * @param match The token types to chomp.
+	 * @returns
+	 */
 	protected chompWhile(match: tokenMatch): Token[] {
 		const matches = flattenTokenMatchesToArray([match]);
 		const tokens: Token[] = [];
 
 		while (this.is(...matches)) {
 			tokens.push(this.chomp(match));
+		}
+
+		return tokens;
+	}
+
+	/**
+	 * Chomps tokens until the current token matches.
+	 * @param match The token types NOT to chomp.
+	 * @returns
+	 */
+	protected chompWhileNot(match: tokenMatch): Token[] {
+		const matches = flattenTokenMatchesToArray([match]);
+		const tokens: Token[] = [];
+
+		while (!this.is(...matches)) {
+			tokens.push(this.chomp(this.token.type));
 		}
 
 		return tokens;
@@ -77,6 +116,12 @@ export abstract class ParserBase {
 		return false;
 	}
 
+	/**
+	 * Chomps the current token if it matches, returns noMatch if it doesn't.
+	 * @param match The token to chomp. If the current token is not this token, noMatch is returned.
+	 * @param noMatch The token to return if the current token does not match.
+	 * @returns
+	 */
 	maybeChomp(match: tokenMatch, noMatch?: Token): Token | undefined {
 		if (this.is(match)) {
 			return this.chomp(match);
@@ -130,6 +175,25 @@ export abstract class ParserBase {
 	 */
 	protected peek(): Token {
 		return this.tokenAt(this.cursorIndex + 1);
+	}
+
+	/**
+	 * Returns the token an index ahead of the current token.
+	 * @param index The index of the token to return.
+	 * @returns
+	 */
+	protected peekAt(index: number): Token {
+		return this.tokenAt(this.cursorIndex + index);
+	}
+
+	/**
+	 * Called after this.checkout() if the parser did not find the closing token or token pattern it expected.
+	 * Returns the parser back to the state it was in before this.checkout() was called.
+	 */
+	protected revertCheckout(): void {
+		this.queuedIndex = this._snapQueuedIndex;
+		this.cursorIndex = this._snapCursorIndex;
+		this.token = this.tokenAt(this.cursorIndex);
 	}
 
 	/**

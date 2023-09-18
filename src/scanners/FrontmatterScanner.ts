@@ -1,8 +1,8 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
-import { DASH, EOF, EOL, SPACE, TokenizerBase } from "./TokenizerBase";
+import { Token } from "../tokens/Token";
+import { TokenType } from "../tokens/TokenType";
+import { DASH, EOF, EOL, SPACE, ScannerBase } from "./ScannerBase";
 
-export class FrontMatterTokenizer extends TokenizerBase {
+export class FrontMatterScanner extends ScannerBase {
 	constructor(source: string) {
 		super(source);
 	}
@@ -54,7 +54,7 @@ export class FrontMatterTokenizer extends TokenizerBase {
 	 * Scans the source string and returns a list of tokens.
 	 * @returns a list of tokens
 	 */
-	public tokenize(): Token[] {
+	public scan(): Token[] {
 		while (!this.is(EOF)) {
 			if (this.is(EOL)) {
 				this.scanBrs();

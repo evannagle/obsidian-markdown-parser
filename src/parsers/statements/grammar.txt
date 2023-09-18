@@ -1,0 +1,57 @@
+
+
+#### File name cannot contain any of the following characters: * " \ / < > : | ?
+#### File links will not work [] # ^ |
+
+
+LEDE                    ->                      RICH_TEXT
+SECTION                 ->                      HEADING LEDE? SECTION?
+DOCUMENT                ->                      LEDE? SECTIONS*
+
+HEADING                 ->                      HHASH RICH_TEXT BR
+QUOTE                   ->                      HGTHAN RICH_TEXT BR
+HR                      ->                      HR BR
+
+LIST_ITEM               ->                      BULLET SPACE RICH_TEXT BR
+CHECKBOX_ITEM           ->                      CHECKBOX SPACE RICH_TEXT BR
+LIST                    ->                      (LIST_ITEM | CHECKBOX_ITEM)*
+LIST_ITEM_METADATA      ->                      L_BRACKET SYMBOL COLON_COLON ^R_BRACKET R_BRACKET
+
+N_LIST_ITEM             ->                      N_BULLET SPACE RICH_TEXT BR 
+N_LIST                  ->                      N_LIST_ITEM*
+
+METADATA_ITEM           ->                      SYMBOL COLON_COLON RICH_TEXT BR 
+METADATA                ->                      METADATA_ITEM*
+
+TABLE_ROW               ->                      BAR SPACE (^BAR SPACE BAR)* BR
+TABLE                   ->                      TABLE_ROW*
+
+INLINE_CODE             ->                      BACKTICK ^BACKTICK BACKTICK
+INLINE_LATEX            ->                      DOLLAR ^DOLLAR DOLLAR\b
+
+BOLD                    ->                      ASTERISK_ASTERISK ^ASTERISK_ASTERISK ASTERISK_ASTERISK
+ITALIC                  ->                      ASTERISK ^ASTERISK ASTERISK
+STRIKETHROUGH           ->                      TILDE_TILDE ^TILDE_TILDE TILDE_TILDE
+TAG                     ->                      TAG
+
+FRONTMATTER             ->                      FRONTMATTER_START BR FRONTMATTER_METADATA BR? FRONTMATTER_END
+FRONTMATTER_ITEM        ->                      FRONTMATTER_KEY COLON SPACE FRONTMATTER_VALUE
+FRONTMATTER_ITEM_LIST   ->                      FRONTMATTER_KEY COLON SPACE? BR LIST
+FRONTMATTER_METADATA    ->                      (FRONTMATTER_ITEM | FRONTMATTER_ITEM_LIST)*
+
+CODE_BLOCK              ->                      CODE_START CODE_LANGUAGE? BR CODE_METADATA CODE_SOURCE
+CODE_METADATA_ITEM      ->                      CODE_KEY COLON SPACE CODE_VALUE BR
+CODE_METADATA           ->                      CODE_METADATA_ITEM*
+CODE_SOURCE             ->                      CODE_SOURCE*
+
+BOOKMARK                ->                      LL_BRACE SYMBOL RR_BRACE
+COMMENT                 ->                      PERCENT_PERCENT COMMENT (PERCENT_PERCENT | BR)
+
+HTML                    ->                      HTML_TAG*
+
+IMAGE_LINK              ->                      ILL_BRACKET FILE RR_BRACKET
+INTERNAL_LINK           ->                      LL_BRACKET FILE BAR TEXT RR_BRACKET | LL_BRACKET FILE RR_BRACKET
+EXTERNAL_LINK           ->                      L_BRACKET TEXT R_BRACKET L_PAREN URL R_PAREN
+FILE                    ->                      WORDS 
+RICH_TEXT               ->
+WORDS                   ->                      SYMBOL | RUNE | NUMBER | SPACE | ORDINAL | ESCAPE

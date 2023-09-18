@@ -1,4 +1,4 @@
-import { Statement } from "src/statements/Statement";
+import { Statement } from "src/parsers/statements/Statement";
 import { Visitor } from "./Visitor";
 
 export class DebugVisitor extends Visitor {

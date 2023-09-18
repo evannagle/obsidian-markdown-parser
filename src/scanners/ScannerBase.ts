@@ -1,5 +1,5 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
+import { Token } from "../tokens/Token";
+import { TokenType } from "../tokens/TokenType";
 
 export const BR = "\n";
 export const EOL = ["\n", "\0"];
@@ -75,7 +75,7 @@ export function nl(...lines: string[]): string {
 	return lines.join("\n");
 }
 
-export abstract class TokenizerBase {
+export abstract class ScannerBase {
 	protected source: string;
 	protected char: string = "";
 	protected queuedIndex = 0;
@@ -267,7 +267,7 @@ export abstract class TokenizerBase {
 	/**
 	 * Tokenizes the source string.
 	 */
-	public abstract tokenize(): Token[];
+	public abstract scan(): Token[];
 
 	/**
 	 * Scans the char and sets the literal value to the count of characters found
@@ -317,11 +317,11 @@ export abstract class TokenizerBase {
 	 * @param tokenizer The tokenizer to use to tokenize the queued characters.
 	 */
 	protected tokenizeQueuedChars(
-		tokenizer: new (source: string) => TokenizerBase
+		tokenizer: new (source: string) => ScannerBase
 	): void {
 		const source = this.clearQueuedChars();
 		const subtokenizer = new tokenizer(source);
-		this.tokens.push(...subtokenizer.tokenize());
+		this.tokens.push(...subtokenizer.scan());
 	}
 
 	/**

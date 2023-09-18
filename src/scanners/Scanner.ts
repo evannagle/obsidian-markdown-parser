@@ -1,16 +1,16 @@
-import { CodeTokenizer } from "./CodeTokenizer";
-import { FrontMatterTokenizer } from "./FrontmatterTokenizer";
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
+import { CodeBlockScanner } from "./CodeBlockScanner";
+import { Token } from "../tokens/Token";
+import { TokenType } from "../tokens/TokenType";
 import {
 	EOF,
 	EOL,
 	SPACE,
-	TokenizerBase,
+	ScannerBase,
 	isAlpha,
 	isAlphaNumeric,
 	isNumber,
-} from "./TokenizerBase";
+} from "./ScannerBase";
+import { FrontMatterScanner } from "./FrontmatterScanner";
 
 export const RUNE_DELIMITERS = [
 	...SPACE,
@@ -23,9 +23,11 @@ export const RUNE_DELIMITERS = [
 	"::",
 	"(",
 	")",
+	"$",
+	"`",
 ];
 
-export class Tokenizer extends TokenizerBase {
+export class Scanner extends ScannerBase {
 	constructor(source: string) {
 		super(source);
 	}
@@ -34,30 +36,30 @@ export class Tokenizer extends TokenizerBase {
 		symbol: string
 	): [TokenType, literalValue: any] {
 		switch (symbol.toLowerCase()) {
-			case "true":
-			case "false":
-				return [TokenType.BOOLEAN, symbol.toLowerCase() === "true"];
-			case "january":
-			case "february":
-			case "march":
-			case "april":
-			case "may":
-			case "june":
-			case "july":
-			case "august":
-			case "september":
-			case "october":
-			case "november":
-			case "december":
-				return [TokenType.MONTH, symbol];
-			case "monday":
-			case "tuesday":
-			case "wednesday":
-			case "thursday":
-			case "friday":
-			case "saturday":
-			case "sunday":
-				return [TokenType.DAY, symbol];
+			// case "true":
+			// case "false":
+			// 	return [TokenType.BOOLEAN, symbol.toLowerCase() === "true"];
+			// case "january":
+			// case "february":
+			// case "march":
+			// case "april":
+			// case "may":
+			// case "june":
+			// case "july":
+			// case "august":
+			// case "september":
+			// case "october":
+			// case "november":
+			// case "december":
+			// 	return [TokenType.MONTH, symbol];
+			// case "monday":
+			// case "tuesday":
+			// case "wednesday":
+			// case "thursday":
+			// case "friday":
+			// case "saturday":
+			// case "sunday":
+			// 	return [TokenType.DAY, symbol];
 			default:
 				return [TokenType.SYMBOL, symbol];
 		}
@@ -81,36 +83,36 @@ export class Tokenizer extends TokenizerBase {
 	}
 
 	protected scanBackticks(): void {
+		if (!this.nextIs("``")) {
+			return this.add(TokenType.BACKTICK);
+		}
+
 		while (this.nextIs("`")) {
 			this.next();
 		}
 
-		const backticks = this.getQueuedChars();
+		this.add(TokenType.CODE_START);
 
-		if (backticks.length >= 3) {
-			this.add(TokenType.CODE_START);
-
-			if (this.nextIs(EOF)) {
-				return;
-			}
-
-			if (!this.is(EOL)) {
-				this.moveCursorToEndOfLine();
-				this.add(TokenType.CODE_LANGUAGE);
-				if (this.is(EOL)) {
-					this.add(TokenType.BR);
-				}
-
-				this.nextUntil("```", EOF);
-				this.tokenizeQueuedChars(CodeTokenizer);
-
-				if (this.is("```")) {
-					this.moveCursor(2).add(TokenType.CODE_END);
-				}
-			}
-		} else {
-			this.add(TokenType.BACKTICKS, backticks.length);
+		if (this.nextIs(EOF)) {
+			return;
 		}
+
+		if (!this.is(EOL)) {
+			this.moveCursorToEndOfLine();
+			this.add(TokenType.CODE_LANGUAGE);
+			if (this.is(EOL)) {
+				this.add(TokenType.BR);
+			}
+
+			this.nextUntil("```", EOF);
+			this.tokenizeQueuedChars(CodeBlockScanner);
+
+			if (this.is("```")) {
+				this.moveCursor(2).add(TokenType.CODE_END);
+			}
+		}
+
+		this.add(TokenType.CODE_END);
 	}
 
 	/**
@@ -177,7 +179,7 @@ export class Tokenizer extends TokenizerBase {
 		if (this.is("---")) {
 			this.moveCursor(2).add(TokenType.FRONTMATTER_START);
 			this.nextUntil("---", EOF);
-			this.tokenizeQueuedChars(FrontMatterTokenizer);
+			this.tokenizeQueuedChars(FrontMatterScanner);
 
 			if (this.is("---")) {
 				this.moveCursor(2).add(TokenType.FRONTMATTER_END);
@@ -345,7 +347,11 @@ export class Tokenizer extends TokenizerBase {
 					this.scanBackticks();
 					break;
 				case "$":
-					this.scanRepeatedChar("$", TokenType.DOLLARS);
+					if (this.nextIs("$")) {
+						this.moveCursor(1).add(TokenType.DOLLAR_DOLLAR);
+					} else {
+						this.add(TokenType.DOLLAR);
+					}
 					break;
 				case "~":
 					if (this.nextIs("~")) {
@@ -608,7 +614,7 @@ export class Tokenizer extends TokenizerBase {
 	 * Scans the source string for tokens.
 	 * @returns a list of tokens
 	 */
-	public tokenize(): Token[] {
+	public scan(): Token[] {
 		let overflowValve = 2000;
 		this.scanFrontmatter();
 
@@ -621,6 +627,6 @@ export class Tokenizer extends TokenizerBase {
 	}
 }
 
-export function getTokens(source: string): Token[] {
-	return new Tokenizer(source).tokenize();
+export function scanTokens(source: string): Token[] {
+	return new Scanner(source).scan();
 }

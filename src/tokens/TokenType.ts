@@ -89,7 +89,7 @@ export enum TokenType {
 	TAG = "TAG",
 
 	// ~~
-	TILDE_TILDE = "TILDES",
+	TILDE_TILDE = "TILDE_TILDE",
 
 	// \"
 	ESCAPE = "ESCAPE",
@@ -101,13 +101,13 @@ export enum TokenType {
 	R_PAREN = "R_PAREN",
 
 	// `
-	// ```
-	BACKTICKS = "BACKTICKS",
+	BACKTICK = "BACKTICK",
 
 	// $
+	DOLLAR = "DOLLAR",
+
 	// $$
-	// $$$
-	DOLLARS = "DOLLARS",
+	DOLLAR_DOLLAR = "DOLLAR_DOLLAR",
 
 	// %% This is a comment %%
 	PERCENT_PERCENT = "PERCENT_PERCENT",
@@ -133,35 +133,6 @@ export enum TokenType {
 	// - [ ]
 	// - [x]
 	CHECKBOX = "CHECKBOX",
-
-	// TOKENS
-
-	// january
-	// february
-	// march
-	// april
-	// may
-	// june
-	// july
-	// august
-	// september
-	// october
-	// november
-	// december
-	MONTH = "MONTH",
-
-	// monday
-	// tuesday
-	// wednesday
-	// thursday
-	// friday
-	// saturday
-	// sunday
-	DAY = "DAY",
-
-	// true
-	// false
-	BOOLEAN = "BOOLEAN",
 
 	// https://foo.com
 	// http://foo.com

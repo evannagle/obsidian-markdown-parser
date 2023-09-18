@@ -1,8 +1,8 @@
-import { Token } from "./Token";
-import { TokenType } from "./TokenType";
-import { EOF, TokenizerBase } from "./TokenizerBase";
+import { Token } from "../tokens/Token";
+import { TokenType } from "../tokens/TokenType";
+import { EOF, ScannerBase } from "./ScannerBase";
 
-export class CodeTokenizer extends TokenizerBase {
+export class CodeBlockScanner extends ScannerBase {
 	/**
 	 * Scans key-value pairs at the top of a code block.
 	 *
@@ -50,7 +50,7 @@ export class CodeTokenizer extends TokenizerBase {
 	 * Scans a code block and returns a list of tokens.
 	 * @returns a list of tokens
 	 */
-	public tokenize(): Token[] {
+	public scan(): Token[] {
 		this.scanKeyValues();
 		this.scanSource();
 		return this.tokens;
