@@ -4,9 +4,14 @@
 #### File links will not work [] # ^ |
 
 
+FRONTMATTER             ->                      FRONTMATTER_START BR FRONTMATTER_METADATA BR? FRONTMATTER_END
+FRONTMATTER_ITEM_SCALAR ->                      FRONTMATTER_KEY COLON SPACE FRONTMATTER_VALUE
+FRONTMATTER_ITEM_LIST   ->                      FRONTMATTER_KEY COLON SPACE? BR LIST
+FRONTMATTER_ITEMS       ->                      (FRONTMATTER_ITEM_SCALAR | FRONTMATTER_ITEM_LIST)*
+
 LEDE                    ->                      RICH_TEXT
 SECTION                 ->                      HEADING LEDE? SECTION?
-DOCUMENT                ->                      LEDE? SECTIONS*
+DOCUMENT                ->                      FRONTMATTER? LEDE? SECTIONS* EOF
 
 HEADING                 ->                      HHASH RICH_TEXT BR
 QUOTE                   ->                      HGTHAN RICH_TEXT BR
@@ -28,16 +33,21 @@ TABLE                   ->                      TABLE_ROW*
 
 INLINE_CODE             ->                      BACKTICK ^BACKTICK BACKTICK
 INLINE_LATEX            ->                      DOLLAR ^DOLLAR DOLLAR\b
+LATEX                   ->                      DOLLAR_DOLLAR BR CODE_SOURCE* BR DOLLAR_DOLLAR
 
 BOLD                    ->                      ASTERISK_ASTERISK ^ASTERISK_ASTERISK ASTERISK_ASTERISK
 ITALIC                  ->                      ASTERISK ^ASTERISK ASTERISK
 STRIKETHROUGH           ->                      TILDE_TILDE ^TILDE_TILDE TILDE_TILDE
-TAG                     ->                      TAG
+HIGHLIGHT               ->                      EQUALS_EQUALS ^EQUALS_EQUALS EQUALS_EQUALS
+FORMATTING              ->                      BOLD | ITALIC | STRIKETHROUGH | HIGHLIGHT
 
-FRONTMATTER             ->                      FRONTMATTER_START BR FRONTMATTER_METADATA BR? FRONTMATTER_END
-FRONTMATTER_ITEM        ->                      FRONTMATTER_KEY COLON SPACE FRONTMATTER_VALUE
-FRONTMATTER_ITEM_LIST   ->                      FRONTMATTER_KEY COLON SPACE? BR LIST
-FRONTMATTER_METADATA    ->                      (FRONTMATTER_ITEM | FRONTMATTER_ITEM_LIST)*
+FILE                    ->                      WORDS 
+IMAGE_LINK              ->                      ILL_BRACKET FILE RR_BRACKET
+INTERNAL_LINK           ->                      LL_BRACKET FILE BAR TEXT RR_BRACKET | LL_BRACKET FILE RR_BRACKET
+EXTERNAL_LINK           ->                      L_BRACKET TEXT R_BRACKET L_PAREN URL R_PAREN
+TAG                     ->                      TAG
+LINK                    ->                      IMAGE_LINK | INTERNAL_LINK | EXTERNAL_LINK | TAG
+
 
 CODE_BLOCK              ->                      CODE_START CODE_LANGUAGE? BR CODE_METADATA CODE_SOURCE
 CODE_METADATA_ITEM      ->                      CODE_KEY COLON SPACE CODE_VALUE BR
@@ -49,9 +59,5 @@ COMMENT                 ->                      PERCENT_PERCENT COMMENT (PERCENT
 
 HTML                    ->                      HTML_TAG*
 
-IMAGE_LINK              ->                      ILL_BRACKET FILE RR_BRACKET
-INTERNAL_LINK           ->                      LL_BRACKET FILE BAR TEXT RR_BRACKET | LL_BRACKET FILE RR_BRACKET
-EXTERNAL_LINK           ->                      L_BRACKET TEXT R_BRACKET L_PAREN URL R_PAREN
-FILE                    ->                      WORDS 
-RICH_TEXT               ->
+
 WORDS                   ->                      SYMBOL | RUNE | NUMBER | SPACE | ORDINAL | ESCAPE

@@ -95,7 +95,7 @@ describe("FrontmatterScanner", () => {
 		const tokens = new FrontMatterScanner(
 			nl("one:", "  - foo", "  - bar", "qux: one", "baz: jam")
 		).scan();
-		expectTokenType(tokens[4], TokenType.FRONTMATTER_BULLET);
+		expectTokenType(tokens[3], TokenType.FRONTMATTER_BULLET);
 	});
 
 	it("scans list items with extra spaces after bullets", () => {

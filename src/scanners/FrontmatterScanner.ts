@@ -18,6 +18,8 @@ export class FrontMatterScanner extends ScannerBase {
 	 * ---
 	 */
 	protected scanListItem(): void {
+		this.nextWhile(SPACE);
+		this.next();
 		this.add(TokenType.FRONTMATTER_BULLET);
 		this.scanSpaces();
 		this.moveCursorToEndOfLine();
@@ -58,10 +60,8 @@ export class FrontMatterScanner extends ScannerBase {
 		while (!this.is(EOF)) {
 			if (this.is(EOL)) {
 				this.scanBrs();
-			} else if (this.is(DASH)) {
+			} else if (this.is(DASH) || this.is(SPACE)) {
 				this.scanListItem();
-			} else if (this.is(SPACE)) {
-				this.scanSpaces();
 			} else {
 				this.scanKeyValue();
 			}

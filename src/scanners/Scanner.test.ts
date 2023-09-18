@@ -3,6 +3,7 @@ import { scanTokens } from "./Scanner";
 import { nl } from "./ScannerBase";
 import { TokenType } from "../tokens/TokenType";
 import { expectTokenType, expectToken } from "./ScannerTestHelpers";
+import { printTokens } from "src/tokens/TokenTable";
 
 describe("Scanner", () => {
 	it("employs FrontmatterTokenizer to scan frontmatter section", () => {
@@ -58,6 +59,16 @@ describe("Scanner", () => {
 	it("scans double tildes at end of word", () => {
 		const tokens = scanTokens("Foo ~~bar~~");
 		expectTokenType(tokens[4], TokenType.TILDE_TILDE);
+	});
+
+	it("scans tildes mid-word", () => {
+		const tokens = scanTokens("Foo bar~~baz~~x");
+		expectTokenType(tokens[3], TokenType.TILDE_TILDE);
+	});
+
+	it("scans double equals", () => {
+		const tokens = scanTokens("Foo ==bar==");
+		expectTokenType(tokens[2], TokenType.EQUALS_EQUALS);
 	});
 
 	it("scans for a simple number", () => {

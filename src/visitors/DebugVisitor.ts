@@ -1,4 +1,4 @@
-import { Statement } from "src/parsers/statements/Statement";
+import { Statement } from "src/parsers/statements";
 import { Visitor } from "./Visitor";
 
 export class DebugVisitor extends Visitor {
@@ -18,13 +18,11 @@ export class DebugVisitor extends Visitor {
 
 		this.log(name, s.toString().replace(/\n/g, "\\n"));
 		this.indent++;
-		s.visitChildren(this);
+		s.visitParts(this);
 		this.indent--;
 	}
 }
 
-export function debugStatements(statements: Statement[]): void {
-	for (const statement of statements) {
-		statement.accept(new DebugVisitor());
-	}
+export function printStatement(statement: Statement): void {
+	statement.accept(new DebugVisitor());
 }

@@ -71,6 +71,8 @@ export enum TokenType {
 	ASTERISK = "ASTERISK",
 	ASTERISK_ASTERISK = "ASTERISK_ASTERISK",
 
+	EQUALS_EQUALS = "EQUAL_EQUAL",
+
 	// 1st
 	// 2nd
 	// 3rd

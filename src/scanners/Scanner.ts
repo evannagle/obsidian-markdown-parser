@@ -20,6 +20,7 @@ export const RUNE_DELIMITERS = [
 	"|",
 	"*",
 	"~~",
+	"==",
 	"::",
 	"(",
 	")",
@@ -356,6 +357,13 @@ export class Scanner extends ScannerBase {
 				case "~":
 					if (this.nextIs("~")) {
 						this.moveCursor(1).add(TokenType.TILDE_TILDE);
+					} else {
+						this.scanSymbolOrRunePart();
+					}
+					break;
+				case "=":
+					if (this.nextIs("=")) {
+						this.moveCursor(1).add(TokenType.EQUALS_EQUALS);
 					} else {
 						this.scanSymbolOrRunePart();
 					}

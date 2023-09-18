@@ -251,6 +251,18 @@ export abstract class ScannerBase {
 	}
 
 	/**
+	 * Continues advancing the cursor while the next character is one of the given characters.
+	 * @param matches The characters to check for.
+	 */
+	protected nextWhile(...matches: stringMatch[]): void {
+		if (!this.is(...matches)) return;
+
+		while (this.nextIs(...matches)) {
+			this.next();
+		}
+	}
+
+	/**
 	 * Returns the characters ahead of the cursor.
 	 * @param len The number of characters to peak ahead.
 	 * @returns The characters ahead of the cursor.

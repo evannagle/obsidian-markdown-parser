@@ -1,6 +1,6 @@
 import { Token } from "../tokens/Token";
 import { TokenType } from "../tokens/TokenType";
-import { Statement } from "./statements/Statement";
+import { Statement } from "./statements";
 
 export const EOL_TOKENS = [TokenType.BR, TokenType.EOF];
 export const SPACE_TOKENS = [TokenType.SPACE, TokenType.TAB];
@@ -55,7 +55,9 @@ export abstract class ParserBase {
 	 *				If an error should not be thrown, use `maybeChomp()` instead.
 	 * @returns
 	 */
-	protected chomp(match: tokenMatch): Token {
+	protected chomp(match?: tokenMatch): Token {
+		if (!match) return this.chomp(this.token.type);
+
 		const matches = flattenTokenMatchesToArray([match]);
 
 		for (const m of matches) {
@@ -166,7 +168,7 @@ export abstract class ParserBase {
 	/**
 	 * Return a tree of statements from the tokens.
 	 */
-	public abstract parse(): Statement[];
+	public abstract parse(): Statement;
 
 	/**
 	 * Check the next token in the stream after this.token
