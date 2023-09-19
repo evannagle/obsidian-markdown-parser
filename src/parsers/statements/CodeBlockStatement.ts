@@ -61,3 +61,17 @@ export class CodeBlockSourceStatement extends Statement {
 		visitor.visitCodeBlockSource(this);
 	}
 }
+
+export class LatexBlockStatement extends Statement {
+	public constructor(
+		public dollarsOnLeft: Token,
+		public content: Token[],
+		public dollarsOnRight: Token
+	) {
+		super([dollarsOnLeft, ...content, dollarsOnRight]);
+	}
+
+	public accept(visitor: IVisitor): void {
+		visitor.visitLatexBlock(this);
+	}
+}

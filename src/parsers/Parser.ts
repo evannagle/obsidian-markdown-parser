@@ -13,11 +13,13 @@ import {
 	HeadingStatement,
 	HighlightStatement,
 	HrStatement,
+	HtmlStatement,
 	ImageLinkStatement,
 	InlineCodeStatement,
 	InlineLatexStatement,
 	InternalLinkStatement,
 	ItalicStatement,
+	LatexBlockStatement,
 	ListItemStatement,
 	ListStatement,
 	MetadataStatement,
@@ -26,16 +28,23 @@ import {
 	NumberedListStatement,
 	ParagraphStatement,
 	PlainTextStatement,
+	QuoteStatement,
 	RichTextStatement,
 	SectionStatement,
 	Statement,
 	StrikethroughStatement,
+	TableCellStatement,
+	TableRowStatement,
+	TableStatement,
 	TagStatement,
+	getNameOfHtmlTag,
+	htmlTagIsSelfClosing,
 } from "./statements";
 
 import { Scanner } from "src/scanners/Scanner";
 import { FrontmatterParser } from "./FrontmatterParser";
 import { CodeBlockParser } from "./CodeBlockParser";
+import { Token } from "src/tokens/Token";
 
 export const PLAINTEXT_TOKENS = [
 	TokenType.SYMBOL,
@@ -44,6 +53,12 @@ export const PLAINTEXT_TOKENS = [
 	TokenType.ORDINAL,
 	TokenType.SPACE,
 	TokenType.ESCAPE,
+];
+
+export const BULLET_TOKENS = [
+	TokenType.BULLET,
+	TokenType.CHECKBOX,
+	TokenType.N_BULLET,
 ];
 
 export class Parser extends ParserBase {
@@ -63,9 +78,7 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	public checkbox(): CheckboxStatement {
-		const tab = this.maybeChomp(TokenType.TAB);
-
+	public checkbox(tab?: Token): CheckboxStatement {
 		return new CheckboxStatement(
 			tab,
 			this.chomp(TokenType.CHECKBOX),
@@ -90,17 +103,18 @@ export class Parser extends ParserBase {
 			switch (this.token.type) {
 				case TokenType.BULLET:
 				case TokenType.CHECKBOX:
-					s = this.list();
-					break;
 				case TokenType.N_BULLET:
-					s = this.numberedList();
+					s = this.list();
 					break;
 				case TokenType.CODE_START:
 					s = this.codeBlock();
 					break;
-				// case TokenType.BR:
-				// 	s = new PlainTextStatement([this.chomp()]);
-				// 	break;
+				case TokenType.PIPE:
+					s = this.table();
+					break;
+				case TokenType.HGTHAN:
+					s = this.quote();
+					break;
 				case TokenType.HR:
 					s = this.hr();
 					break;
@@ -180,6 +194,32 @@ export class Parser extends ParserBase {
 		);
 	}
 
+	public html(): HtmlStatement {
+		const openTag = this.chomp(TokenType.HTML_TAG);
+		const isSelfClosing = htmlTagIsSelfClosing(openTag);
+		const tags: (Token | HtmlStatement)[] = [openTag];
+
+		if (!isSelfClosing) {
+			const tagName = getNameOfHtmlTag(openTag);
+
+			while (!this.is(TokenType.EOF)) {
+				if (
+					this.is(TokenType.HTML_TAG) &&
+					this.token.lexeme === `</${tagName}>`
+				) {
+					tags.push(this.chomp());
+					break;
+				} else if (this.is(TokenType.HTML_TAG)) {
+					tags.push(this.html());
+				} else {
+					tags.push(this.chomp());
+				}
+			}
+		}
+
+		return new HtmlStatement(tags);
+	}
+
 	public imageLink(): ImageLinkStatement {
 		return new ImageLinkStatement(
 			this.chomp(TokenType.ILL_BRACKET),
@@ -236,32 +276,50 @@ export class Parser extends ParserBase {
 
 	public list(depth = 0): ListStatement | undefined {
 		const items: ListItemStatement[] = [];
+		let listItemType = ListStatement;
 
 		while (
-			(depth === 0 && this.is(TokenType.BULLET, TokenType.CHECKBOX)) ||
+			(depth === 0 && this.is(BULLET_TOKENS)) ||
 			(depth > 0 &&
 				this.is(TokenType.TAB) &&
-				this.nextIs(TokenType.BULLET, TokenType.CHECKBOX) &&
+				this.nextIs(BULLET_TOKENS) &&
 				(this.token.literal as number) >= depth)
 		) {
-			const bullet = this.is(TokenType.TAB) ? this.peekAt(1) : this.token;
-			const s =
-				bullet.type === TokenType.CHECKBOX
-					? this.checkbox()
-					: this.listItem();
+			const tab = this.maybeChomp(TokenType.TAB);
+			let s: ListItemStatement | undefined;
+
+			switch (this.token.type) {
+				case TokenType.BULLET:
+					s = this.listItem(tab);
+					break;
+				case TokenType.CHECKBOX:
+					s = this.checkbox(tab);
+					break;
+				case TokenType.N_BULLET:
+					s = this.numberedListItem(tab);
+					listItemType = NumberedListStatement;
+					break;
+			}
+
 			if (s) items.push(s);
 		}
 
 		if (items.length > 0) {
-			return new ListStatement(items);
+			return new listItemType(items);
 		} else {
 			return undefined;
 		}
 	}
 
-	public listItem(): ListItemStatement {
-		const tab = this.maybeChomp(TokenType.TAB);
+	public latexBlock(): LatexBlockStatement {
+		return new LatexBlockStatement(
+			this.chomp(TokenType.DOLLAR_DOLLAR),
+			this.chompWhileNot([TokenType.DOLLAR_DOLLAR, TokenType.EOF]),
+			this.chomp(TokenType.DOLLAR_DOLLAR)
+		);
+	}
 
+	public listItem(tab?: Token): ListItemStatement {
 		return new ListItemStatement(
 			tab,
 			this.chomp(TokenType.BULLET),
@@ -293,31 +351,14 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	public numberedList(depth = 0): NumberedListStatement {
-		const items: NumberedListItemStatement[] = [];
-
-		while (
-			(depth === 0 && this.is(TokenType.N_BULLET)) ||
-			(depth > 0 &&
-				this.is(TokenType.TAB) &&
-				(this.token.literal as number) >= depth)
-		) {
-			items.push(this.numberedListItem());
-		}
-
-		return new NumberedListStatement(items);
-	}
-
-	public numberedListItem(): NumberedListItemStatement {
-		const tab = this.maybeChomp(TokenType.TAB);
-
+	public numberedListItem(tab?: Token): NumberedListItemStatement {
 		return new NumberedListItemStatement(
 			tab,
 			this.chomp(TokenType.N_BULLET),
 			this.chomp(TokenType.SPACE),
 			this.richText(EOL_TOKENS),
 			this.chomp(EOL_TOKENS),
-			this.numberedList((tab ? (tab?.literal as number) : 0) + 1)
+			this.list((tab ? (tab?.literal as number) : 0) + 1)
 		);
 	}
 
@@ -334,6 +375,15 @@ export class Parser extends ParserBase {
 			this.chomp(),
 			...this.chompWhile([...PLAINTEXT_TOKENS, ...allowedTokens]),
 		]);
+	}
+
+	public quote(): QuoteStatement {
+		return new QuoteStatement(
+			this.chomp(TokenType.HGTHAN),
+			this.maybeChomp(TokenType.SPACE),
+			this.richTextOnLineUntil(TokenType.HGTHAN),
+			this.chomp(EOL_TOKENS)
+		);
 	}
 
 	public richText(stopTokens = EOL_TOKENS): RichTextStatement {
@@ -354,6 +404,9 @@ export class Parser extends ParserBase {
 					break;
 				case TokenType.DOLLAR:
 					s = this.latex() || this.plainText([TokenType.DOLLAR]);
+					break;
+				case TokenType.DOLLAR_DOLLAR:
+					s = this.latexBlock();
 					break;
 				case TokenType.EQUALS_EQUALS:
 					s = this.highlight();
@@ -379,6 +432,9 @@ export class Parser extends ParserBase {
 					break;
 				case TokenType.TAG:
 					s = this.tag();
+					break;
+				case TokenType.HTML_TAG:
+					s = this.html();
 					break;
 				case TokenType.TILDE_TILDE:
 					s = this.strikethrough();
@@ -425,6 +481,34 @@ export class Parser extends ParserBase {
 			this.richTextOnLineUntil(TokenType.TILDE_TILDE),
 			this.chomp(TokenType.TILDE_TILDE)
 		);
+	}
+
+	public table(): TableStatement {
+		const rows: TableRowStatement[] = [];
+
+		while (this.is(TokenType.PIPE)) {
+			rows.push(this.tableRow());
+		}
+
+		return new TableStatement(rows);
+	}
+
+	public tableCell(): TableCellStatement {
+		return new TableCellStatement(
+			this.chomp(TokenType.PIPE),
+			this.richTextOnLineUntil(TokenType.PIPE),
+			this.nextIs(EOL_TOKENS) ? this.chomp(TokenType.PIPE) : undefined
+		);
+	}
+
+	public tableRow(): TableRowStatement {
+		const cells: TableCellStatement[] = [];
+
+		while (this.is(TokenType.PIPE)) {
+			cells.push(this.tableCell());
+		}
+
+		return new TableRowStatement(cells, this.chomp(EOL_TOKENS));
 	}
 
 	public tag(): TagStatement {

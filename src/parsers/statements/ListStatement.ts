@@ -57,6 +57,6 @@ export class NumberedListItemStatement extends ListItemStatement {
 		public br: Token,
 		public list: ListStatement | undefined = undefined
 	) {
-		super(tab, number, space, content, br);
+		super(tab, number, space, content, br, list);
 	}
 }

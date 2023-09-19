@@ -24,10 +24,12 @@ export const RUNE_DELIMITERS = [
 	"::",
 	"(",
 	")",
+	"$$",
 	"$",
 	"`",
 	"{{",
 	"}}",
+	"<",
 ];
 
 export class Scanner extends ScannerBase {

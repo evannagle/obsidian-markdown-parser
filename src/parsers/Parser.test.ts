@@ -3,11 +3,18 @@ import { nl } from "src/scanners/ScannerBase";
 import { describe, expect, it } from "vitest";
 import {
 	BookmarkStatement,
+	CodeBlockStatement,
 	FrontmatterItemStatement,
 	FrontmatterListStatement,
+	HtmlStatement,
+	LatexBlockStatement,
 	ListStatement,
+	NumberedListItemStatement,
+	NumberedListStatement,
 	ParagraphStatement,
+	QuoteStatement,
 	RichTextStatement,
+	TableStatement,
 } from "./statements";
 import { printStatement } from "src/visitors/DebugVisitor";
 import { printTokens } from "src/tokens/TokenTable";
@@ -71,22 +78,56 @@ describe("Parser", () => {
 	});
 
 	describe("code blocks", () => {
-		// it("xx", () => {
-		// 	const parsed = parseMarkdown(
-		// 		nl(
-		// 			"```text",
-		// 			"thing: one",
-		// 			"thing2: two boo bear",
-		// 			"",
-		// 			"foo",
-		// 			"bar",
-		// 			"```"
-		// 		)
-		// 	);
-		// 	// const parser = new CodeBlockParser(tokens);
-		// 	// const parsed = parser.parse();
-		// 	printStatement(parsed);
-		// });
+		it("parses a code block", () => {
+			const parsed = parseMarkdown(
+				nl("```text", "thing1: one", "thing2: two", "", "foo", "```")
+			);
+			const codeblock = parsed.lede?.parts[0];
+			expect(codeblock).toBeInstanceOf(CodeBlockStatement);
+		});
+
+		it("parses a latex code block", () => {
+			// const tokens = scanTokens(nl("$$", "foo", "bar", "baz", "$$"));
+			// printTokens(tokens);
+			const parsed = parseMarkdown(nl("$$", "foo", "boo", "$$"));
+			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
+			const richtext = paragraph?.parts[0] as RichTextStatement;
+			const latex = richtext?.parts[0];
+			expect(latex).toBeInstanceOf(LatexBlockStatement);
+		});
+	});
+
+	describe("html", () => {
+		it("parses html", () => {
+			const parsed = parseMarkdown(nl("<div>", "</div>"));
+			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
+			const richtext = paragraph?.parts[0] as RichTextStatement;
+			const html = richtext?.parts[0];
+			expect(html).toBeInstanceOf(HtmlStatement);
+		});
+
+		it("recursively parses html", () => {
+			// const tokens = scanTokens(
+			// 	nl("<div>", "<i>foo</i>", "</div> outside of div")
+			// );
+			// printTokens(tokens);
+			const parsed = parseMarkdown(
+				nl(
+					"<div class='foo'>",
+					"<i>foo</i>",
+					"<div><div></div></div>",
+					"<span>another</span>",
+					"</div> outside of div"
+				)
+			);
+
+			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
+			const richtext = paragraph?.parts[0] as RichTextStatement;
+			const html = richtext?.parts[0] as HtmlStatement;
+
+			expect(html).toBeInstanceOf(HtmlStatement);
+			expect(html.parts).toHaveLength(9);
+		});
 	});
 
 	describe("lists", () => {
@@ -139,6 +180,84 @@ describe("Parser", () => {
 			const parsed = parseMarkdown(nl("- tomorrow", "\t- [ ] foo"));
 			const list = parsed.lede?.parts[0] as ListStatement;
 			expect(list.items[0]?.list?.items.length).toBe(1);
+		});
+
+		it("parses a hybrid numbered an unnumbered list", () => {
+			const parsed = parseMarkdown(
+				nl("- foo", "- bar", "  1. moo", "  2. bah", "- baz")
+			);
+
+			const list = parsed.lede?.parts[0] as ListStatement;
+			expect(list.items.length).toBe(3);
+			expect(list.items[1]?.list).toBeInstanceOf(NumberedListStatement);
+			expect(list.items[1]?.list?.items.length).toBe(2);
+		});
+
+		it("parses a hybrid numbered, unnumbered, and checkbox list", () => {
+			const parsed = parseMarkdown(
+				nl(
+					"- foo",
+					"- bar",
+					"  1. moo",
+					"  2. bah",
+					"  - [ ] zar",
+					"- baz"
+				)
+			);
+
+			const list = parsed.lede?.parts[0] as ListStatement;
+			expect(list.items.length).toBe(3);
+			expect(list.items[1]?.list).toBeInstanceOf(NumberedListStatement);
+			expect(list.items[1]?.list?.items.length).toBe(3);
+		});
+	});
+
+	describe("numbered lists", () => {
+		it("parses a one-dimensional numbered list", () => {
+			const parsed = parseMarkdown(nl("1. foo", "2. bar", "3. baz"));
+			const list = parsed.lede?.parts[0] as NumberedListStatement;
+			expect(list.items.length).toBe(3);
+		});
+
+		it("parses a two-dimensional numbered list", () => {
+			const parsed = parseMarkdown(
+				nl("1. foo", "2. bar", "  1. moo", "  2. bah", "3. baz")
+			);
+			const list = parsed.lede?.parts[0] as NumberedListStatement;
+			expect(list.items.length).toBe(3);
+			expect(list.items[1]?.list?.items.length).toBe(2);
+		});
+
+		it("parses a three-dimensional numbered list", () => {
+			const parsed = parseMarkdown(
+				nl(
+					"1. foo",
+					"2. bar",
+					"  1. moo",
+					"    1. bah",
+					"  2. zar",
+					"3. baz"
+				)
+			);
+
+			const list = parsed.lede?.parts[0] as NumberedListStatement;
+			expect(list.items.length).toBe(3);
+			expect(list.items[1]?.list?.items.length).toBe(2);
+			expect(list.items[1]?.list?.items[0]?.list?.items.length).toBe(1);
+			expect(
+				list.items[1]?.list?.items[0]?.list?.items[0]?.content?.toString()
+			).toBe("bah");
+		});
+
+		it("parses a hybrid numbered an unnumbered list", () => {
+			const parsed = parseMarkdown(
+				nl("1. foo", "2. bar", "  - moo", "  - bah", "3. baz")
+			);
+
+			const list = parsed.lede?.parts[0] as NumberedListStatement;
+			expect(list.items.length).toBe(3);
+			expect(list.items[1]?.list).toBeInstanceOf(ListStatement);
+			expect(list.items[1]?.list?.items.length).toBe(2);
 		});
 	});
 
@@ -287,6 +406,35 @@ describe("Parser", () => {
 				nl("# Section 1", "foo", "## Section 2")
 			);
 			expect(parsed.sections[0]?.lede?.toString()).toBe("foo\n");
+		});
+	});
+
+	describe("quotes", () => {
+		it("parses a quote", () => {
+			const parsed = parseMarkdown(nl("> foo"));
+			const quote = parsed.lede?.parts[0] as QuoteStatement;
+			expect(quote).toBeInstanceOf(QuoteStatement);
+			expect(quote.content.toString()).toBe("foo");
+		});
+	});
+
+	describe("tables", () => {
+		it("parses a table", () => {
+			const parsed = parseMarkdown(
+				nl(
+					"| foo | bar |",
+					"| --- | --- |",
+					"| moo | bah |",
+					"| zar | coo |"
+				)
+			);
+
+			const table = parsed.lede?.parts[0] as TableStatement;
+			expect(table.rows.length).toBe(4);
+			expect(table.rows[0]?.cells.length).toBe(2);
+			expect(table.rows[1]?.cells.length).toBe(2);
+			expect(table.rows[2]?.cells.length).toBe(2);
+			expect(table.rows[3]?.cells.length).toBe(2);
 		});
 	});
 });

@@ -26,6 +26,12 @@ import {
 	CodeBlockMetadataStatement,
 	CodeBlockSourceStatement,
 	CodeBlockMetadataItemStatement,
+	LatexBlockStatement,
+	HtmlStatement,
+	TableStatement,
+	TableRowStatement,
+	TableCellStatement,
+	QuoteStatement,
 } from "src/parsers/statements";
 
 export interface IVisitor {
@@ -44,7 +50,9 @@ export interface IVisitor {
 	visitFrontmatter(s: FrontmatterStatement): void;
 	visitHeading(s: HeadingStatement): void;
 	visitHr(s: HrStatement): void;
+	visitHtml(s: HtmlStatement): void;
 	visitInlineCode(s: InlineCodeStatement): void;
+	visitLatexBlock(s: LatexBlockStatement): void;
 	visitLink(s: LinkStatement): void;
 	visitList(s: ListStatement): void;
 	visitListItem(s: ListItemStatement): void;
@@ -52,8 +60,12 @@ export interface IVisitor {
 	visitMetadataTag(s: MetadataTagStatement): void;
 	visitParagraph(s: ParagraphStatement): void;
 	visitPlainText(s: PlainTextStatement): void;
+	visitQuote(s: QuoteStatement): void;
 	visitRichText(s: RichTextStatement): void;
 	visitSection(s: SectionStatement): void;
+	visitTable(s: TableStatement): void;
+	visitTableRow(s: TableRowStatement): void;
+	visitTableCell(s: TableCellStatement): void;
 	visitTag(s: TagStatement): void;
 }
 
@@ -79,7 +91,9 @@ export class Visitor implements IVisitor {
 	public visitFrontmatterListItem = this.visit;
 	public visitHeading = this.visit;
 	public visitHr = this.visit;
+	public visitHtml = this.visit;
 	public visitInlineCode = this.visit;
+	public visitLatexBlock = this.visit;
 	public visitLink = this.visit;
 	public visitList = this.visit;
 	public visitListItem = this.visit;
@@ -87,7 +101,11 @@ export class Visitor implements IVisitor {
 	public visitMetadataTag = this.visit;
 	public visitParagraph = this.visit;
 	public visitPlainText = this.visit;
+	public visitQuote = this.visit;
 	public visitRichText = this.visit;
 	public visitSection = this.visit;
+	public visitTable = this.visit;
+	public visitTableRow = this.visit;
+	public visitTableCell = this.visit;
 	public visitTag = this.visit;
 }
