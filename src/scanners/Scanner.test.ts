@@ -3,7 +3,6 @@ import { scanTokens } from "./Scanner";
 import { nl } from "./ScannerBase";
 import { TokenType } from "../tokens/TokenType";
 import { expectTokenType, expectToken } from "./ScannerTestHelpers";
-import { printTokens } from "src/tokens/TokenTable";
 
 describe("Scanner", () => {
 	it("employs FrontmatterTokenizer to scan frontmatter section", () => {

@@ -1,5 +1,6 @@
 import { Statement } from "src/parsers/statements";
 import { Visitor } from "./Visitor";
+import { escapeLinebreaks } from "src/tokens/TokenTable";
 
 export class DebugVisitor extends Visitor {
 	indent = 0;
@@ -16,13 +17,15 @@ export class DebugVisitor extends Visitor {
 	public override visit(s: Statement) {
 		const name = "<" + s.constructor.name.replace("Statement", "") + ">";
 
-		this.log(name, s.toString().replace(/\n/g, "\\n"));
+		this.log(name, escapeLinebreaks(s.toString()));
 		this.indent++;
 		s.visitParts(this);
 		this.indent--;
 	}
 }
 
-export function printStatement(statement: Statement): void {
+export function printStatement(statement?: Statement): void {
+	if (!statement) return;
+
 	statement.accept(new DebugVisitor());
 }

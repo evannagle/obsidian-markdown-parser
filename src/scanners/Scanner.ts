@@ -26,6 +26,8 @@ export const RUNE_DELIMITERS = [
 	")",
 	"$",
 	"`",
+	"{{",
+	"}}",
 ];
 
 export class Scanner extends ScannerBase {
@@ -113,7 +115,7 @@ export class Scanner extends ScannerBase {
 			}
 		}
 
-		this.add(TokenType.CODE_END);
+		// this.add(TokenType.CODE_END);
 	}
 
 	/**
@@ -339,7 +341,7 @@ export class Scanner extends ScannerBase {
 					break;
 				case "*":
 					if (this.nextIs("*")) {
-						this.moveCursor(1).add(TokenType.ASTERISK_ASTERISK);
+						this.next().add(TokenType.ASTERISK_ASTERISK);
 					} else {
 						this.add(TokenType.ASTERISK);
 					}
@@ -349,28 +351,28 @@ export class Scanner extends ScannerBase {
 					break;
 				case "$":
 					if (this.nextIs("$")) {
-						this.moveCursor(1).add(TokenType.DOLLAR_DOLLAR);
+						this.next().add(TokenType.DOLLAR_DOLLAR);
 					} else {
 						this.add(TokenType.DOLLAR);
 					}
 					break;
 				case "~":
 					if (this.nextIs("~")) {
-						this.moveCursor(1).add(TokenType.TILDE_TILDE);
+						this.next().add(TokenType.TILDE_TILDE);
 					} else {
 						this.scanSymbolOrRunePart();
 					}
 					break;
 				case "=":
 					if (this.nextIs("=")) {
-						this.moveCursor(1).add(TokenType.EQUALS_EQUALS);
+						this.next().add(TokenType.EQUALS_EQUALS);
 					} else {
 						this.scanSymbolOrRunePart();
 					}
 					break;
 				case ":":
 					if (this.nextIs(": ")) {
-						this.moveCursor(1).add(TokenType.COLON_COLON);
+						this.next().add(TokenType.COLON_COLON);
 					} else {
 						this.scanSymbolOrRunePart();
 					}
@@ -405,6 +407,20 @@ export class Scanner extends ScannerBase {
 					}
 				case "<":
 					this.scanHtmlTagPart();
+					break;
+				case "{":
+					if (this.nextIs("{")) {
+						this.next().add(TokenType.LL_BRACE);
+					} else {
+						this.scanSymbolOrRunePart();
+					}
+					break;
+				case "}":
+					if (this.nextIs("}")) {
+						this.next().add(TokenType.RR_BRACE);
+					} else {
+						this.scanSymbolOrRunePart();
+					}
 					break;
 				default:
 					if (isNumber(this.char)) {

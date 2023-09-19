@@ -1,8 +1,8 @@
 import { IVisitor } from "src/visitors/Visitor";
 import { Statement } from "./Statement";
 
-export class RichTextStatement extends Statement {
+export class ContentStatement extends Statement {
 	public accept(visitor: IVisitor): void {
-		visitor.visitRichText(this);
+		visitor.visitContent(this);
 	}
 }

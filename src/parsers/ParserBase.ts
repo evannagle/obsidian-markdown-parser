@@ -64,6 +64,7 @@ export abstract class ParserBase {
 			if (this.is(m)) {
 				const token = this.token;
 				this.next();
+				this.clearQueuedTokens();
 				return token;
 			}
 		}
@@ -103,6 +104,20 @@ export abstract class ParserBase {
 		}
 
 		return tokens;
+	}
+
+	/**
+	 * Returns the tokens in the queue that have not yet been chomped.
+	 * @returns The tokens passed using "next" since the last chomp.
+	 * @example
+	 *
+	 * this.nextUntil(TokenType.BR);
+	 * this.clearQueuedTokens(); // returns all tokens up to the BR
+	 */
+	protected clearQueuedTokens(): Token[] {
+		const source = this.tokens.slice(this.queuedIndex, this.cursorIndex);
+		this.queuedIndex = this.cursorIndex;
+		return source;
 	}
 
 	/**
@@ -163,6 +178,20 @@ export abstract class ParserBase {
 				return match !== undefined && this.peek().type === match;
 			}).length > 0
 		);
+	}
+
+	protected nextWhile(...matches: tokenMatch[]): this {
+		while (this.nextIs(...matches)) {
+			this.next();
+		}
+		return this;
+	}
+
+	protected nextUntil(...matches: tokenMatch[]): this {
+		while (!this.is(...matches)) {
+			this.next();
+		}
+		return this;
 	}
 
 	/**

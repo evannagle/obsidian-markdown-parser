@@ -66,6 +66,8 @@ export enum TokenType {
 	ILL_BRACKET = "ILL_BRACKET",
 	R_BRACKET = "R_BRACKET",
 	RR_BRACKET = "RR_BRACKET",
+	LL_BRACE = "LL_BRACE",
+	RR_BRACE = "RR_BRACE",
 
 	// **
 	ASTERISK = "ASTERISK",
