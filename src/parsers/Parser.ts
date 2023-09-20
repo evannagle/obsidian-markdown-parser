@@ -41,7 +41,6 @@ import {
 	htmlTagIsSelfClosing,
 } from "./statements";
 
-import { Scanner } from "src/scanners/Scanner";
 import { FrontmatterParser } from "./FrontmatterParser";
 import { CodeBlockParser } from "./CodeBlockParser";
 import { Token } from "src/tokens/Token";
@@ -160,10 +159,6 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	/**
-	 * Parses a frontmatter statement
-	 * @returns a parsed frontmatter statement
-	 */
 	public frontmatter(): FrontmatterStatement | undefined {
 		if (!this.is(TokenType.FRONTMATTER_START)) return undefined;
 		this.nextUntil(TokenType.FRONTMATTER_END).next();
@@ -516,7 +511,10 @@ export class Parser extends ParserBase {
 	}
 }
 
-export function parseMarkdown(text: string): DocumentStatement {
-	const tokens = new Scanner(text).scan();
-	return new Parser(tokens).parse();
+export function parseMarkdownDoc(text: string): DocumentStatement {
+	return new Parser(text).parse();
+}
+
+export function parse(text: string): Parser {
+	return new Parser(text);
 }

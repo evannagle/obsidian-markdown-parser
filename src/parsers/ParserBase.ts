@@ -1,3 +1,4 @@
+import { scanTokens } from "src/scanners/Scanner";
 import { Token } from "../tokens/Token";
 import { TokenType } from "../tokens/TokenType";
 import { Statement } from "./statements";
@@ -34,7 +35,11 @@ export abstract class ParserBase {
 	private _snapQueuedIndex = 0;
 	private _snapCursorIndex = 0;
 
-	public constructor(tokens: Token[]) {
+	public constructor(tokens: string | Token[]) {
+		if (typeof tokens === "string") {
+			tokens = scanTokens(tokens);
+		}
+
 		this.tokens = tokens;
 		this.moveCursor(0);
 	}
