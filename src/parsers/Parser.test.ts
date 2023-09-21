@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
 	BoldStatement,
 	BookmarkStatement,
-	CodeBlockStatement,
+	CodeStatement,
 	ContentStatement,
 	ExternalLinkStatement,
 	FrontmatterItemStatement,
@@ -18,8 +18,7 @@ import {
 	InlineLatexStatement,
 	InternalLinkStatement,
 	ItalicStatement,
-	LatexBlockStatement,
-	ListItemStatement,
+	LatexStatement,
 	ListStatement,
 	MetadataStatement,
 	MetadataTagStatement,
@@ -31,15 +30,13 @@ import {
 	StrikethroughStatement,
 	TableStatement,
 } from "./statements";
-import { printStatement } from "src/visitors/DebugVisitor";
 
 describe("Parser", () => {
 	describe("bookmarks", () => {
 		it("parses a bookmark", () => {
 			const parsed = parseMarkdownDoc("here is a {{bookmark}}");
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
-			const richtext = paragraph?.parts[0] as RichTextStatement;
-			const bookmark = richtext.parts[1];
+			const bookmark = paragraph.content.parts[1];
 			expect(bookmark).toBeInstanceOf(BookmarkStatement);
 		});
 
@@ -48,8 +45,7 @@ describe("Parser", () => {
 				"here is a {{bookmark with more symbols}}"
 			);
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
-			const richtext = paragraph?.parts[0] as RichTextStatement;
-			const bookmark = richtext.parts[1] as BookmarkStatement;
+			const bookmark = paragraph.content.parts[1] as BookmarkStatement;
 			expect(bookmark).toBeInstanceOf(BookmarkStatement);
 			expect(bookmark.content.toString()).toBe(
 				"bookmark with more symbols"
@@ -68,7 +64,7 @@ describe("Parser", () => {
 				nl("```text", "thing1: one", "thing2: two", "", "foo", "```")
 			);
 			const codeblock = parsed.lede?.parts[0];
-			expect(codeblock).toBeInstanceOf(CodeBlockStatement);
+			expect(codeblock).toBeInstanceOf(CodeStatement);
 		});
 
 		it("parses a latex code block", () => {
@@ -76,13 +72,12 @@ describe("Parser", () => {
 			// printTokens(tokens);
 			const parsed = parseMarkdownDoc(nl("$$", "foo", "boo", "$$"));
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
-			const richtext = paragraph?.parts[0] as RichTextStatement;
-			const latex = richtext?.parts[0];
-			expect(latex).toBeInstanceOf(LatexBlockStatement);
+			const latex = paragraph.content.parts[0];
+			expect(latex).toBeInstanceOf(LatexStatement);
 		});
 
 		it("creates a code block", () => {
-			const codeBlock = CodeBlockStatement.create(
+			const codeBlock = CodeStatement.create(
 				"js",
 				{
 					foo: "bar",
@@ -306,8 +301,7 @@ describe("Parser", () => {
 		it("parses html", () => {
 			const parsed = parseMarkdownDoc(nl("<div>", "</div>"));
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
-			const richtext = paragraph?.parts[0] as RichTextStatement;
-			const html = richtext?.parts[0];
+			const html = paragraph.content.parts[0];
 			expect(html).toBeInstanceOf(HtmlStatement);
 		});
 
@@ -327,8 +321,7 @@ describe("Parser", () => {
 			);
 
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
-			const richtext = paragraph?.parts[0] as RichTextStatement;
-			const html = richtext?.parts[0] as HtmlStatement;
+			const html = paragraph.content.parts[0] as HtmlStatement;
 
 			expect(html).toBeInstanceOf(HtmlStatement);
 			expect(html.parts).toHaveLength(9);

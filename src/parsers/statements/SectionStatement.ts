@@ -1,6 +1,6 @@
 import { IVisitor } from "src/visitors/Visitor";
 import { ContentStatement } from "./ContentStatement";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { RichTextStatement } from "./RichTextStatement";
 
@@ -10,7 +10,15 @@ export class SectionStatement extends Statement {
 		public lede: ContentStatement | undefined,
 		public sections: SectionStatement[]
 	) {
-		super([heading, lede, ...sections]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.heading, this.lede, ...this.sections];
 	}
 
 	public accept(visitor: IVisitor): void {
@@ -25,7 +33,11 @@ export class HeadingStatement extends Statement {
 		public content: RichTextStatement,
 		public br: Token
 	) {
-		super([hhash, space, content, br]);
+		super();
+	}
+
+	protected getParts(): StatementPart[] {
+		return [this.hhash, this.space, this.content, this.br];
 	}
 
 	public accept(visitor: IVisitor): void {

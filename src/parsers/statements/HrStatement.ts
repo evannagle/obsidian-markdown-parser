@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { TokenType } from "src/tokens/TokenType";
 
@@ -14,7 +14,15 @@ import { TokenType } from "src/tokens/TokenType";
  */
 export class HrStatement extends Statement {
 	constructor(public hr: Token, public br: Token) {
-		super([hr, br]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.hr, this.br];
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { PlainTextStatement } from "./PlainTextStatement";
 import { TokenType } from "src/tokens/TokenType";
@@ -16,7 +16,15 @@ export class BookmarkStatement extends Statement {
 		public content: PlainTextStatement,
 		public braceOnRight: Token
 	) {
-		super([braceOnLeft, content, braceOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.braceOnLeft, this.content, this.braceOnRight];
 	}
 
 	/**

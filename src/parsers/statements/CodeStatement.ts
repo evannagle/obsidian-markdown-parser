@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { TokenType } from "src/tokens/TokenType";
 import { Token } from "src/tokens/Token";
 import { scanTokens } from "src/scanners/Scanner";
@@ -15,23 +15,31 @@ import { scanTokens } from "src/scanners/Scanner";
  * console.log("Hello, world!");
  * ```
  */
-export class CodeBlockStatement extends Statement {
+export class CodeStatement extends Statement {
 	public constructor(
-		public backticksOnLeft: Token,
+		public backticksOnTop: Token,
 		public language: Token | undefined,
 		public topBr: Token,
-		public metadata: CodeBlockMetadataStatement | undefined,
-		public source: CodeBlockSourceStatement,
-		public backticksOnRight: Token
+		public metadata: CodeMetadataStatement | undefined,
+		public source: CodeSourceStatement,
+		public backticksOnBottom: Token
 	) {
-		super([
-			backticksOnLeft,
-			language,
-			topBr,
-			metadata,
-			source,
-			backticksOnRight,
-		]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [
+			this.backticksOnTop,
+			this.language,
+			this.topBr,
+			this.metadata,
+			this.source,
+			this.backticksOnBottom,
+		];
 	}
 
 	/**
@@ -54,17 +62,17 @@ export class CodeBlockStatement extends Statement {
 		language: string | undefined,
 		metadata: Record<string, string>,
 		source: string
-	): CodeBlockStatement {
-		return new CodeBlockStatement(
+	): CodeStatement {
+		return new CodeStatement(
 			Token.create(TokenType.CODE_START),
 			language
 				? Token.create(TokenType.CODE_LANGUAGE, language)
 				: undefined,
 			Token.createBr(),
-			CodeBlockMetadataStatement.create(
-				...CodeBlockMetadataItemStatement.createMany(metadata)
+			CodeMetadataStatement.create(
+				...CodeMetadataItemStatement.createMany(metadata)
 			),
-			CodeBlockSourceStatement.create("\n" + source),
+			CodeSourceStatement.create(source),
 			Token.create(TokenType.CODE_END)
 		);
 	}
@@ -81,9 +89,17 @@ export class CodeBlockStatement extends Statement {
  * console.log("Hello, world!");
  * ```
  */
-export class CodeBlockMetadataStatement extends Statement {
-	constructor(public items: CodeBlockMetadataItemStatement[]) {
-		super(items);
+export class CodeMetadataStatement extends Statement {
+	constructor(public items: CodeMetadataItemStatement[], public br?: Token) {
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [...this.items, this.br];
 	}
 
 	/**
@@ -102,9 +118,9 @@ export class CodeBlockMetadataStatement extends Statement {
 	 * @returns The generated metadata.
 	 */
 	public static create(
-		...items: CodeBlockMetadataItemStatement[]
-	): CodeBlockMetadataStatement {
-		return new CodeBlockMetadataStatement(items);
+		...items: CodeMetadataItemStatement[]
+	): CodeMetadataStatement {
+		return new CodeMetadataStatement(items, Token.createBr());
 	}
 }
 
@@ -119,7 +135,7 @@ export class CodeBlockMetadataStatement extends Statement {
  * console.log("Hello, world!");
  * ```
  */
-export class CodeBlockMetadataItemStatement extends Statement {
+export class CodeMetadataItemStatement extends Statement {
 	public constructor(
 		public key: Token,
 		public colon: Token,
@@ -127,7 +143,15 @@ export class CodeBlockMetadataItemStatement extends Statement {
 		public value: Token | undefined,
 		public br: Token | undefined
 	) {
-		super([key, colon, space, value, br]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
 	/**
@@ -147,13 +171,13 @@ export class CodeBlockMetadataItemStatement extends Statement {
 	 */
 	public static create(
 		key: string,
-		value: string
-	): CodeBlockMetadataItemStatement {
-		return new CodeBlockMetadataItemStatement(
+		value?: string
+	): CodeMetadataItemStatement {
+		return new CodeMetadataItemStatement(
 			Token.create(TokenType.CODE_KEY, key),
 			Token.create(TokenType.COLON),
 			Token.createSpace(),
-			Token.create(TokenType.CODE_VALUE, value),
+			value ? Token.create(TokenType.CODE_VALUE, value) : undefined,
 			Token.createBr()
 		);
 	}
@@ -165,9 +189,9 @@ export class CodeBlockMetadataItemStatement extends Statement {
 	 */
 	public static createMany(
 		dictionary: Record<string, string>
-	): CodeBlockMetadataItemStatement[] {
+	): CodeMetadataItemStatement[] {
 		return Object.entries(dictionary).map(([key, value]) =>
-			CodeBlockMetadataItemStatement.create(key, value)
+			CodeMetadataItemStatement.create(key, value)
 		);
 	}
 }
@@ -183,9 +207,20 @@ export class CodeBlockMetadataItemStatement extends Statement {
  * console.log("Hello, world!");  <-- This is a CodeBlockSourceStatement.
  * ```
  */
-export class CodeBlockSourceStatement extends Statement {
-	public constructor(public source: Token[]) {
-		super(source);
+export class CodeSourceStatement extends Statement {
+	public constructor(
+		public content: Token[],
+		public br: Token | undefined = undefined
+	) {
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [...this.content, this.br];
 	}
 
 	/**
@@ -202,13 +237,16 @@ export class CodeBlockSourceStatement extends Statement {
 	 * @param source The source code of the code block. This will be split into lines of CODE_SOURCE tokens.
 	 * @returns The generated code block source.
 	 */
-	public static create(source: string): CodeBlockSourceStatement {
-		const lines = source.split("\n");
-		const tokens = lines.map((line) =>
-			Token.create(TokenType.CODE_SOURCE, line + "\n")
-		);
+	public static create(source: string): CodeSourceStatement {
+		// const lines = source.split("\n");
+		// const tokens = lines.map((line) =>
+		// 	Token.create(TokenType.CODE_SOURCE, line + "\n")
+		// );
 
-		return new CodeBlockSourceStatement(tokens);
+		return new CodeSourceStatement(
+			[Token.create(TokenType.CODE_SOURCE, source)],
+			Token.createBr()
+		);
 	}
 }
 
@@ -217,13 +255,21 @@ export class CodeBlockSourceStatement extends Statement {
  * @example
  * $$1 + 1 = 2$$
  */
-export class LatexBlockStatement extends Statement {
+export class LatexStatement extends Statement {
 	public constructor(
 		public dollarsOnLeft: Token,
 		public content: Token[],
 		public dollarsOnRight: Token
 	) {
-		super([dollarsOnLeft, ...content, dollarsOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.dollarsOnLeft, ...this.content, this.dollarsOnRight];
 	}
 
 	/**
@@ -240,8 +286,8 @@ export class LatexBlockStatement extends Statement {
 	 * @param content The Latex content.
 	 * @returns The generated LaTeX block.
 	 */
-	public static create(content: string): LatexBlockStatement {
-		return new LatexBlockStatement(
+	public static create(content: string): LatexStatement {
+		return new LatexStatement(
 			Token.create(TokenType.DOLLAR_DOLLAR),
 			scanTokens(content),
 			Token.create(TokenType.DOLLAR_DOLLAR)

@@ -5,7 +5,7 @@ import {
 	BoldStatement,
 	BookmarkStatement,
 	CheckboxStatement,
-	CodeBlockStatement,
+	CodeStatement,
 	ContentStatement,
 	DocumentStatement,
 	ExternalLinkStatement,
@@ -19,7 +19,7 @@ import {
 	InlineLatexStatement,
 	InternalLinkStatement,
 	ItalicStatement,
-	LatexBlockStatement,
+	LatexStatement,
 	ListItemStatement,
 	ListStatement,
 	MetadataStatement,
@@ -88,7 +88,7 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	public codeBlock(): CodeBlockStatement {
+	public codeBlock(): CodeStatement {
 		this.nextUntil(TokenType.CODE_END).next();
 		return new CodeBlockParser(this.clearQueuedTokens()).parse();
 	}
@@ -306,8 +306,8 @@ export class Parser extends ParserBase {
 		}
 	}
 
-	public latexBlock(): LatexBlockStatement {
-		return new LatexBlockStatement(
+	public latexBlock(): LatexStatement {
+		return new LatexStatement(
 			this.chomp(TokenType.DOLLAR_DOLLAR),
 			this.chompWhileNot([TokenType.DOLLAR_DOLLAR, TokenType.EOF]),
 			this.chomp(TokenType.DOLLAR_DOLLAR)

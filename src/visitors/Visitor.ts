@@ -22,11 +22,11 @@ import {
 	HeadingStatement,
 	BookmarkStatement,
 	ParagraphStatement,
-	CodeBlockStatement,
-	CodeBlockMetadataStatement,
-	CodeBlockSourceStatement,
-	CodeBlockMetadataItemStatement,
-	LatexBlockStatement,
+	CodeStatement,
+	CodeMetadataStatement,
+	CodeSourceStatement,
+	CodeMetadataItemStatement,
+	LatexStatement,
 	HtmlStatement,
 	TableStatement,
 	TableRowStatement,
@@ -37,10 +37,10 @@ import {
 export interface IVisitor {
 	visitBookmark(s: BookmarkStatement): void;
 	visitCheckbox(s: CheckboxStatement): void;
-	visitCodeBlock(s: CodeBlockStatement): void;
-	visitCodeBlockMetadata(s: CodeBlockMetadataStatement): void;
-	visitCodeBlockMetadataItem(s: CodeBlockMetadataItemStatement): void;
-	visitCodeBlockSource(s: CodeBlockSourceStatement): void;
+	visitCodeBlock(s: CodeStatement): void;
+	visitCodeBlockMetadata(s: CodeMetadataStatement): void;
+	visitCodeBlockMetadataItem(s: CodeMetadataItemStatement): void;
+	visitCodeBlockSource(s: CodeSourceStatement): void;
 	visitContent(s: ContentStatement): void;
 	visitDocument(s: DocumentStatement): void;
 	visitFormatting(s: FormattingStatement): void;
@@ -52,7 +52,7 @@ export interface IVisitor {
 	visitHr(s: HrStatement): void;
 	visitHtml(s: HtmlStatement): void;
 	visitInlineCode(s: InlineCodeStatement): void;
-	visitLatexBlock(s: LatexBlockStatement): void;
+	visitLatexBlock(s: LatexStatement): void;
 	visitLink(s: LinkStatement): void;
 	visitList(s: ListStatement): void;
 	visitListItem(s: ListItemStatement): void;

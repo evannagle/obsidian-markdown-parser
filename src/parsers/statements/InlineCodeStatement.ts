@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { TokenType } from "src/tokens/TokenType";
 import { scanTokens } from "src/scanners/Scanner";
@@ -26,7 +26,15 @@ export class InlineCodeStatement extends Statement {
 		public content: Token[],
 		public backtickOnRight: Token
 	) {
-		super([backtickOnLeft, ...content, backtickOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.backtickOnLeft, ...this.content, this.backtickOnRight];
 	}
 
 	/**
@@ -46,7 +54,8 @@ export class InlineCodeStatement extends Statement {
 	public static create(content: string): InlineCodeStatement {
 		return new InlineCodeStatement(
 			Token.create(TokenType.BACKTICK),
-			scanTokens(content),
+			// scanTokens(content),
+			[Token.create(TokenType.CODE_SOURCE, content)],
 			Token.create(TokenType.BACKTICK)
 		);
 	}

@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { PlainTextStatement } from "./PlainTextStatement";
 import { Token } from "src/tokens/Token";
 import { TokenType } from "src/tokens/TokenType";
@@ -10,7 +10,7 @@ export enum LinkType {
 	Image = "image",
 }
 
-export class LinkStatement extends Statement {
+export abstract class LinkStatement extends Statement {
 	public type = LinkType.Internal;
 
 	/**
@@ -35,7 +35,21 @@ export class InternalLinkStatement extends LinkStatement {
 		public alias: PlainTextStatement | undefined,
 		public bracketOnRight: Token
 	) {
-		super([bracketOnLeft, file, pipe, alias, bracketOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [
+			this.bracketOnLeft,
+			this.file,
+			this.pipe,
+			this.alias,
+			this.bracketOnRight,
+		];
 	}
 
 	/**
@@ -70,7 +84,22 @@ export class ExternalLinkStatement extends LinkStatement {
 		public url: Token | PlainTextStatement,
 		public rightParen: Token
 	) {
-		super([leftBracket, alias, rightBracket, leftParen, url, rightParen]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [
+			this.leftBracket,
+			this.alias,
+			this.rightBracket,
+			this.leftParen,
+			this.url,
+			this.rightParen,
+		];
 	}
 
 	/**
@@ -79,13 +108,13 @@ export class ExternalLinkStatement extends LinkStatement {
 	 * @param url The url to link to
 	 * @returns The generated external link.
 	 */
-	public static create(alias: string, url: string) {
+	public static create(alias: string, url: URL | string) {
 		return new ExternalLinkStatement(
 			Token.create(TokenType.L_BRACKET),
 			PlainTextStatement.create(alias),
 			Token.create(TokenType.R_BRACKET),
 			Token.create(TokenType.L_PAREN),
-			Token.create(TokenType.URL, url),
+			Token.create(TokenType.URL, url.toString()),
 			Token.create(TokenType.R_PAREN)
 		);
 	}
@@ -103,7 +132,15 @@ export class ImageLinkStatement extends LinkStatement {
 		public file: PlainTextStatement,
 		public rightBracket: Token
 	) {
-		super([leftBracket, file, rightBracket]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.leftBracket, this.file, this.rightBracket];
 	}
 
 	/**

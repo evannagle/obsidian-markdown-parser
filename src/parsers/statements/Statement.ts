@@ -4,8 +4,6 @@ import { IVisitor } from "src/visitors/Visitor";
 export type StatementPart = Token | Statement | undefined;
 
 export abstract class Statement {
-	constructor(public parts: StatementPart[]) {}
-
 	/**
 	 * Accepts a visitor.
 	 * @param visitor The visitor to accept.
@@ -14,11 +12,18 @@ export abstract class Statement {
 	public abstract accept(visitor: IVisitor): void;
 
 	/**
+	 * Returns the parts of the statement.
+	 */
+	protected abstract getParts(): StatementPart[];
+
+	/**
 	 * Returns a string representation of the statement.
 	 * @returns A string representation of the statement.
 	 */
 	public toString(): string {
-		return this.parts.map((part) => (part || "").toString()).join("");
+		return this.getParts()
+			.map((part) => (part || "").toString())
+			.join("");
 	}
 
 	/**
@@ -26,7 +31,7 @@ export abstract class Statement {
 	 * @param visitor The visitor to accept.
 	 */
 	public visitParts(visitor: IVisitor): void {
-		for (const part of this.parts) {
+		for (const part of this.getParts()) {
 			if (part instanceof Statement) {
 				part.accept(visitor);
 			}

@@ -1,5 +1,5 @@
 import { Token } from "src/tokens/Token";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { RichTextStatement } from "./RichTextStatement";
 import { IVisitor } from "src/visitors/Visitor";
 import { TokenType } from "src/tokens/TokenType";
@@ -26,7 +26,15 @@ export class MetadataStatement extends Statement {
 		public value: RichTextStatement,
 		public br: Token | undefined
 	) {
-		super([key, colon, space, value, br]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
 	/**
@@ -77,7 +85,22 @@ export class MetadataTagStatement extends Statement {
 		public value: RichTextStatement,
 		public bracketOnRight: Token
 	) {
-		super([bracketOnLeft, key, colon, space, value, bracketOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [
+			this.bracketOnLeft,
+			this.key,
+			this.colon,
+			this.space,
+			this.value,
+			this.bracketOnRight,
+		];
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { Token } from "src/tokens/Token";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { IVisitor } from "src/visitors/Visitor";
 import { RichTextStatement } from "./RichTextStatement";
 import { TokenType } from "src/tokens/TokenType";
@@ -24,7 +24,15 @@ export class FormattingStatement extends Statement {
 		public content: RichTextStatement,
 		public decoratorOnRight: Token
 	) {
-		super([decoratorOnLeft, content, decoratorOnRight]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.decoratorOnLeft, this.content, this.decoratorOnRight];
 	}
 
 	public accept(visitor: IVisitor): void {

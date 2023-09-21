@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { TokenType } from "src/tokens/TokenType";
 
@@ -32,7 +32,15 @@ export class FrontmatterStatement extends Statement {
 		public items: FrontmatterItemStatement[],
 		public closing: Token
 	) {
-		super([opening, br, ...items, closing]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.opening, this.br, ...this.items, this.closing];
 	}
 
 	/**
@@ -75,7 +83,15 @@ export class FrontmatterItemStatement extends Statement {
 		public value: Token | Statement | undefined,
 		public br: Token | undefined
 	) {
-		super([key, colon, space, value, br]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
 	/**
@@ -191,9 +207,16 @@ export class FrontmatterListAttrStatement extends FrontmatterItemStatement {
  */
 export class FrontmatterListStatement extends Statement {
 	constructor(public items: FrontmatterListItemStatement[]) {
-		super(items);
+		super();
 	}
 
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return this.items;
+	}
 	/**
 	 * Accepts a visitor.
 	 * See the Visitor pattern. @link https://en.wikipedia.org/wiki/Visitor_pattern
@@ -228,7 +251,15 @@ export class FrontmatterListItemStatement extends Statement {
 		public value: Token | undefined,
 		public br: Token
 	) {
-		super([bullet, space, value, br]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [this.bullet, this.space, this.value, this.br];
 	}
 
 	/**

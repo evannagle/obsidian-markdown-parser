@@ -1,5 +1,5 @@
 import { IVisitor } from "src/visitors/Visitor";
-import { Statement } from "./Statement";
+import { Statement, StatementPart } from "./Statement";
 import { Token } from "src/tokens/Token";
 import { RichTextStatement } from "./RichTextStatement";
 import { TokenType } from "src/tokens/TokenType";
@@ -30,8 +30,16 @@ import { TokenType } from "src/tokens/TokenType";
  *    2. item 2.1.2
  */
 export class ListStatement extends Statement {
-	constructor(public items: ListItemStatement[]) {
-		super(items);
+	public constructor(public items: ListItemStatement[]) {
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return this.items;
 	}
 
 	/**
@@ -67,7 +75,7 @@ export class ListStatement extends Statement {
 	 *     - dar
 	 * 
 	 */
-	private static _create(
+	public static createAtTab(
 		tab: number,
 		items: (string | string[])[]
 	): ListStatement {
@@ -84,7 +92,7 @@ export class ListStatement extends Statement {
 				return ListItemStatement.create(
 					tab,
 					item.shift() as string,
-					ListStatement._create(tab + 1, item)
+					ListStatement.createAtTab(tab + 1, item)
 				);
 			}
 		});
@@ -117,7 +125,7 @@ export class ListStatement extends Statement {
 	 * 
 	 */
 	public static create(...items: any[]): ListStatement {
-		return ListStatement._create(0, items);
+		return ListStatement.createAtTab(0, items);
 	}
 
 	/**
@@ -126,7 +134,7 @@ export class ListStatement extends Statement {
 	 * @returns The generated list statement.
 	 */
 	public static createDim(...items: string[]) {
-		return ListStatement._create(
+		return ListStatement.createAtTab(
 			0,
 			items.map((item) => [item])
 		);
@@ -158,7 +166,22 @@ export abstract class ListItemBaseStatement extends Statement {
 		public br: Token,
 		public list: ListStatement | undefined = undefined
 	) {
-		super([tab, bullet, space, content, br, list]);
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return [
+			this.tab,
+			this.bullet,
+			this.space,
+			this.content,
+			this.br,
+			this.list,
+		];
 	}
 
 	/**

@@ -1,16 +1,15 @@
 import { TokenType } from "src/tokens/TokenType";
 import { ParserBase } from "./ParserBase";
 import {
-	CodeBlockMetadataItemStatement,
-	CodeBlockMetadataStatement,
-	CodeBlockSourceStatement,
-	CodeBlockStatement,
+	CodeMetadataItemStatement,
+	CodeMetadataStatement,
+	CodeSourceStatement,
+	CodeStatement,
 } from "./statements";
-import { Token } from "src/tokens/Token";
 
 export class CodeBlockParser extends ParserBase {
-	public parse(): CodeBlockStatement {
-		return new CodeBlockStatement(
+	public parse(): CodeStatement {
+		return new CodeStatement(
 			this.chomp(TokenType.CODE_START),
 			this.maybeChomp(TokenType.CODE_LANGUAGE),
 			this.chomp(TokenType.BR),
@@ -20,22 +19,22 @@ export class CodeBlockParser extends ParserBase {
 		);
 	}
 
-	public metadata(): CodeBlockMetadataStatement | undefined {
-		const items: CodeBlockMetadataItemStatement[] = [];
+	public metadata(): CodeMetadataStatement | undefined {
+		const items: CodeMetadataItemStatement[] = [];
 
 		while (this.is(TokenType.CODE_KEY)) {
 			items.push(this.metadataItem());
 		}
 
 		if (items.length > 0) {
-			return new CodeBlockMetadataStatement(items);
+			return new CodeMetadataStatement(items);
 		} else {
 			return undefined;
 		}
 	}
 
-	public metadataItem(): CodeBlockMetadataItemStatement {
-		return new CodeBlockMetadataItemStatement(
+	public metadataItem(): CodeMetadataItemStatement {
+		return new CodeMetadataItemStatement(
 			this.chomp(TokenType.CODE_KEY),
 			this.chomp(TokenType.COLON),
 			this.maybeChomp(TokenType.SPACE),
@@ -44,8 +43,8 @@ export class CodeBlockParser extends ParserBase {
 		);
 	}
 
-	public source(): CodeBlockSourceStatement {
+	public source(): CodeSourceStatement {
 		this.nextUntil(TokenType.CODE_END);
-		return new CodeBlockSourceStatement(this.clearQueuedTokens());
+		return new CodeSourceStatement(this.clearQueuedTokens());
 	}
 }

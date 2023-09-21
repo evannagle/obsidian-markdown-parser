@@ -1,5 +1,5 @@
 export * from "./BookmarkStatement";
-export * from "./CodeBlockStatement";
+export * from "./CodeStatement";
 export * from "./ContentStatement";
 export * from "./DocumentStatement";
 export * from "./FormattingStatement";
