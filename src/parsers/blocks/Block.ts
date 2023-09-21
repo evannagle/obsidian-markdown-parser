@@ -27,7 +27,7 @@ export abstract class Block<T extends Statement> {
 	 */
 	protected stmt: T;
 
-	protected constructor(stmt: T) {
+	public constructor(stmt: T) {
 		this.stmt = stmt;
 	}
 

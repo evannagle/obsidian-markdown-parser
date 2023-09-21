@@ -20,7 +20,8 @@ import {
 	ItalicStatement,
 	LatexStatement,
 	ListStatement,
-	MetadataStatement,
+	MetadataListStatement,
+	MetadataItemStatement,
 	MetadataTagStatement,
 	NumberedListStatement,
 	ParagraphStatement,
@@ -30,6 +31,7 @@ import {
 	StrikethroughStatement,
 	TableStatement,
 } from "./statements";
+import { printStatement } from "src/visitors/DebugVisitor";
 
 describe("Parser", () => {
 	describe("bookmarks", () => {
@@ -549,7 +551,17 @@ describe("Parser", () => {
 	describe("metadata", () => {
 		it("parses metadata", () => {
 			const parsed = parse("Foo:: Bar").content();
-			expect(parsed?.parts[0]).toBeInstanceOf(MetadataStatement);
+			const list = parsed?.parts[0] as MetadataListStatement;
+			expect(list).toBeInstanceOf(MetadataListStatement);
+			expect(list.items[0]).toBeInstanceOf(MetadataItemStatement);
+		});
+
+		it("parses a metadata list", () => {
+			const parsed = parse(nl("Foo:: Bar", "Zoo:: Zar")).content();
+			const list = parsed?.parts[0] as MetadataListStatement;
+			expect(list).toBeInstanceOf(MetadataListStatement);
+			expect(list.items[0]).toBeInstanceOf(MetadataItemStatement);
+			expect(list.items[1]).toBeInstanceOf(MetadataItemStatement);
 		});
 
 		it("parses a metadata tag", () => {
@@ -560,7 +572,7 @@ describe("Parser", () => {
 		});
 
 		it("creates a metadata statement", () => {
-			const metadata = MetadataStatement.create("foo", "bar");
+			const metadata = MetadataItemStatement.create("foo", "bar");
 			expect(metadata.toString()).toBe("foo:: bar\n");
 		});
 

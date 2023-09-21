@@ -14,7 +14,7 @@ import {
 	LinkStatement,
 	TagStatement,
 	CheckboxStatement,
-	MetadataStatement,
+	MetadataItemStatement,
 	InlineCodeStatement,
 	MetadataTagStatement,
 	HrStatement,
@@ -32,6 +32,7 @@ import {
 	TableRowStatement,
 	TableCellStatement,
 	QuoteStatement,
+	MetadataListStatement,
 } from "src/parsers/statements";
 
 export interface IVisitor {
@@ -56,7 +57,8 @@ export interface IVisitor {
 	visitLink(s: LinkStatement): void;
 	visitList(s: ListStatement): void;
 	visitListItem(s: ListItemStatement): void;
-	visitMetadata(s: MetadataStatement): void;
+	visitMetadataList(s: MetadataListStatement): void;
+	visitMetadata(s: MetadataItemStatement): void;
 	visitMetadataTag(s: MetadataTagStatement): void;
 	visitParagraph(s: ParagraphStatement): void;
 	visitPlainText(s: PlainTextStatement): void;
@@ -98,6 +100,7 @@ export class Visitor implements IVisitor {
 	public visitList = this.visit;
 	public visitListItem = this.visit;
 	public visitMetadata = this.visit;
+	public visitMetadataList = this.visit;
 	public visitMetadataTag = this.visit;
 	public visitParagraph = this.visit;
 	public visitPlainText = this.visit;

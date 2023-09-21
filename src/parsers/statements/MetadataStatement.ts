@@ -5,6 +5,50 @@ import { IVisitor } from "src/visitors/Visitor";
 import { TokenType } from "src/tokens/TokenType";
 
 /**
+ * Metadata contained in a list with no separator.
+ *
+ * @example
+ * key:: value
+ * key2:: value2
+ * key3:: value3
+ */
+export class MetadataListStatement extends Statement {
+	public constructor(public items: MetadataItemStatement[]) {
+		super();
+	}
+
+	/**
+	 * Gets the parts of the statement.
+	 * @returns The parts of the statement.
+	 */
+	protected getParts(): StatementPart[] {
+		return this.items;
+	}
+
+	/**
+	 * Accepts a visitor.
+	 * See the Visitor pattern. @link https://en.wikipedia.org/wiki/Visitor_pattern
+	 * @param visitor The visitor to accept.
+	 */
+	public accept(visitor: IVisitor): void {
+		visitor.visitMetadataList(this);
+	}
+
+	/**
+	 * Creates a metadata list.
+	 * @param dict The dictionary to create the metadata list from.
+	 * @returns The generated metadata list.
+	 */
+	public static create(dict: Record<string, string>): MetadataListStatement {
+		return new MetadataListStatement(
+			Object.entries(dict).map(([key, value]) =>
+				MetadataItemStatement.create(key, value)
+			)
+		);
+	}
+}
+
+/**
  * Metadata statements are statements in a document used to describe the document.
  * The format of the statments is as follows:
  *
@@ -18,7 +62,7 @@ import { TokenType } from "src/tokens/TokenType";
  * date:: 2021-01-01
  *
  */
-export class MetadataStatement extends Statement {
+export class MetadataItemStatement extends Statement {
 	public constructor(
 		public key: Token,
 		public colon: Token,
@@ -55,8 +99,8 @@ export class MetadataStatement extends Statement {
 	 * @example
 	 * create("key", "value") // key:: value
 	 */
-	public static create(key: string, value: string): MetadataStatement {
-		return new MetadataStatement(
+	public static create(key: string, value: string): MetadataItemStatement {
+		return new MetadataItemStatement(
 			Token.create(TokenType.SYMBOL, key),
 			Token.create(TokenType.COLON_COLON),
 			Token.createSpace(),

@@ -2,7 +2,6 @@ import { Token } from "src/tokens/Token";
 import {
 	CodeMetadataItemStatement,
 	CodeMetadataStatement,
-	CodeSourceStatement,
 	CodeStatement,
 } from "../statements";
 import { Block, getLinesAsStr, lines } from "./Block";
@@ -58,14 +57,16 @@ export class CodeBlock extends Block<CodeStatement> {
 	 * Get the source of the code block.
 	 */
 	public get source(): string {
-		return this.stmt.source.content.toString();
+		return Token.toString(this.stmt.source.content);
 	}
 
 	/**
 	 * Set the source of the code block.
 	 */
 	public set source(source: lines) {
-		this.stmt.source = CodeSourceStatement.create(getLinesAsStr(source));
+		this.stmt.source.content = [
+			Token.create(TokenType.CODE_SOURCE, getLinesAsStr(source)),
+		];
 	}
 
 	/**
@@ -98,6 +99,12 @@ export class CodeBlock extends Block<CodeStatement> {
  * ```
  */
 export class CodeMetadataBlock extends Block<CodeMetadataStatement> {
+	public constructor(stmt: CodeMetadataStatement) {
+		super(stmt);
+		this._lastItem = stmt.items[stmt.items.length - 1];
+		this._lastItemBr = this._lastItem?.br;
+	}
+
 	/**
 	 * Find the CodeMedataItemStatement with the given key.
 	 * Remember -- blocks should never expose their statements.
@@ -143,15 +150,8 @@ export class CodeMetadataBlock extends Block<CodeMetadataStatement> {
 	 * @param value The value of the metadata item.
 	 */
 	public set(key: string, value: any) {
-		const item = this.findItem(key);
-
-		if (!item) {
-			this.stmt.items.push(
-				CodeMetadataItemStatement.create(key, value.toString())
-			);
-		} else {
-			item.value = Token.create(TokenType.CODE_VALUE, value);
-		}
+		this._set(key, value);
+		this._updateBrs();
 	}
 
 	/**
@@ -166,7 +166,46 @@ export class CodeMetadataBlock extends Block<CodeMetadataStatement> {
 	 */
 	public setMany(metadata: Record<string, string>) {
 		for (const [key, value] of Object.entries(metadata)) {
-			this.set(key, value);
+			this._set(key, value);
+		}
+		this._updateBrs();
+	}
+
+	protected _set(key: string, value: any) {
+		const item = this.findItem(key);
+
+		if (!item) {
+			this.stmt.items.push(
+				CodeMetadataItemStatement.create(key, value.toString())
+			);
+		} else {
+			item.value = Token.create(TokenType.CODE_VALUE, value);
 		}
 	}
+
+	protected _updateBrs(): void {
+		if (this._lastItem) {
+			this._lastItem.br = Token.createBr();
+			this._lastItem = this.stmt.items[
+				this.stmt.items.length - 1
+			] as CodeMetadataItemStatement;
+			this._lastItem.br = this._lastItemBr;
+		}
+
+		// let brSize = 1;
+		// for (let i = 0; i < this.stmt.items.length; i++) {
+		// 	const item = this.stmt.items[i] as CodeMetadataItemStatement;
+
+		// 	brSize = Math.max(brSize, (item.br?.literal as number) ?? 1);
+
+		// 	if (i === this.stmt.items.length - 1) {
+		// 		item.br = Token.createBr(brSize);
+		// 	} else {
+		// 		item.br = Token.createBr(1);
+		// 	}
+		// }
+	}
+
+	private _lastItem: CodeMetadataItemStatement | undefined;
+	private _lastItemBr: Token | undefined;
 }

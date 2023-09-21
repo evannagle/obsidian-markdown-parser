@@ -105,18 +105,18 @@ export class Scanner extends ScannerBase {
 		if (!this.is(EOL)) {
 			this.moveCursorToEndOfLine();
 			this.add(TokenType.CODE_LANGUAGE);
-			if (this.is(EOL)) {
-				this.add(TokenType.BR);
-			}
-
-			this.nextUntil("```", EOF);
-			this.tokenizeQueuedChars(CodeBlockScanner);
-
-			if (this.is("```")) {
-				this.moveCursor(2).add(TokenType.CODE_END);
-			}
 		}
 
+		if (this.is(EOL)) {
+			this.scanBrs();
+		}
+
+		this.nextUntil("```", EOF);
+		this.tokenizeQueuedChars(CodeBlockScanner);
+
+		if (this.is("```")) {
+			this.moveCursor(2).add(TokenType.CODE_END);
+		}
 		// this.add(TokenType.CODE_END);
 	}
 

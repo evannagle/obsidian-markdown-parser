@@ -49,4 +49,8 @@ export class Token {
 	public static createTab(tabCount = 1) {
 		return Token.create(TokenType.TAB, "  ".repeat(tabCount), tabCount);
 	}
+
+	public static toString(tokens: Token[]): string {
+		return tokens.map((token) => token.lexeme).join("");
+	}
 }

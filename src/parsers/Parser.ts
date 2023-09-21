@@ -22,7 +22,8 @@ import {
 	LatexStatement,
 	ListItemStatement,
 	ListStatement,
-	MetadataStatement,
+	MetadataListStatement,
+	MetadataItemStatement,
 	MetadataTagStatement,
 	NumberedListItemStatement,
 	NumberedListStatement,
@@ -88,7 +89,7 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	public codeBlock(): CodeStatement {
+	public code(): CodeStatement {
 		this.nextUntil(TokenType.CODE_END).next();
 		return new CodeBlockParser(this.clearQueuedTokens()).parse();
 	}
@@ -106,7 +107,7 @@ export class Parser extends ParserBase {
 					s = this.list();
 					break;
 				case TokenType.CODE_START:
-					s = this.codeBlock();
+					s = this.code();
 					break;
 				case TokenType.PIPE:
 					s = this.table();
@@ -325,8 +326,21 @@ export class Parser extends ParserBase {
 		);
 	}
 
-	public metadata(): MetadataStatement {
-		return new MetadataStatement(
+	public metadata(): MetadataListStatement {
+		const items: MetadataItemStatement[] = [];
+
+		while (
+			this.is(TokenType.SYMBOL) &&
+			this.nextIs(TokenType.COLON_COLON)
+		) {
+			items.push(this.metadataItem());
+		}
+
+		return new MetadataListStatement(items);
+	}
+
+	public metadataItem(): MetadataItemStatement {
+		return new MetadataItemStatement(
 			this.chomp(TokenType.SYMBOL),
 			this.chomp(TokenType.COLON_COLON),
 			this.maybeChomp(TokenType.SPACE),
@@ -365,7 +379,7 @@ export class Parser extends ParserBase {
 		return this.document();
 	}
 
-	public plainText(allowedTokens: TokenType[] = []): Statement {
+	public plainText(allowedTokens: TokenType[] = []): PlainTextStatement {
 		return new PlainTextStatement([
 			this.chomp(),
 			...this.chompWhile([...PLAINTEXT_TOKENS, ...allowedTokens]),
