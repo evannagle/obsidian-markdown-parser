@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { ListBlock, ListItemBlock } from "./ListBlock";
+import {
+	CheckboxBlock,
+	ListBlock,
+	ListItemBlock,
+	NumberedListBlock,
+	NumberedListItemBlock,
+} from "./ListBlock";
 
 describe("ListBlock", () => {
 	it("creates a ListBlock", () => {
@@ -13,17 +19,78 @@ describe("ListBlock", () => {
 		]);
 	});
 
-	it("creates a ListBlock from ListItemBlocks", () => {
-		const listBlock = ListBlock.create(
-			ListItemBlock.create("foo"),
-			ListItemBlock.create("bar"),
-			ListItemBlock.create("baz")
-		);
+	it("creates a numbered list block", () => {
+		const listBlock = NumberedListBlock.create("foo", "bar", "baz");
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"1. foo",
+			"2. bar",
+			"3. baz",
+			"",
+		]);
+	});
+
+	it("creates a numbered list block that does not start at 1", () => {
+		const listBlock = NumberedListBlock.create("foo", "bar", "baz");
+
+		listBlock.startAt(3);
+		listBlock.add("dung");
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"3. foo",
+			"4. bar",
+			"5. baz",
+			"6. dung",
+			"",
+		]);
+	});
+
+	it("removes an item from the list", () => {
+		const listBlock = NumberedListBlock.create("foo", "bar", "baz", "dung");
+
+		listBlock.remove(1);
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"1. foo",
+			"2. baz",
+			"3. dung",
+			"",
+		]);
+	});
+
+	it("creates an empty ListBox that can be added to", () => {
+		const listBlock = ListBlock.create();
+		listBlock.add("one");
+
+		expect(listBlock.toString().split("\n")).toEqual(["- one", ""]);
+	});
+
+	it("creates a ListBlock with checkboxes", () => {
+		const listBlock = ListBlock.create("foo", "bar", "baz", "one");
+
+		listBlock.add(CheckboxBlock.create("two"));
 
 		expect(listBlock.toString().split("\n")).toEqual([
 			"- foo",
 			"- bar",
 			"- baz",
+			"- one",
+			"- [ ] two",
+			"",
+		]);
+	});
+
+	it("creates a ListBlock with numbered items", () => {
+		const listBlock = ListBlock.create("foo", "bar", "baz", "one");
+
+		listBlock.add(NumberedListItemBlock.create(1, "two"));
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"- foo",
+			"- bar",
+			"- baz",
+			"- one",
+			"1. two",
 			"",
 		]);
 	});

@@ -386,6 +386,17 @@ export class NumberedListItemStatement extends ListItemBaseStatement {
 		super(tab, number, space, content, br, list);
 	}
 
+	public override getParts(): StatementPart[] {
+		return [
+			this.tab,
+			this.number,
+			this.space,
+			this.content,
+			this.br,
+			this.list,
+		];
+	}
+
 	/**
 	 * Create a numbered list item.
 	 * @param tab The indentation level.
