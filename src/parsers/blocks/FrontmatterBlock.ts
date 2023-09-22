@@ -40,34 +40,6 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	}
 
 	/**
-	 *
-	 * @returns A dictionary of all frontmatter items.
-	 *
-	 * @example
-	 * const frontmatter = FrontmatterBlock.create({
-	 *   title: "Hello, world!",
-	 *   tags: ["foo", "bar", "baz"],
-	 *   date: "2021-01-01",
-	 * });
-	 *
-	 * const dict = frontmatter.getDict();
-	 *
-	 * // returns:
-	 * // {
-	 * //   title: "Hello, world!",
-	 * //   tags: ["foo", "bar", "baz"],
-	 * //   date: "2021-01-01",
-	 * // }
-	 */
-	public getDict(): Record<string, string | string[] | undefined> {
-		const dict: Record<string, string | string[] | undefined> = {};
-		for (const item of this.stmt.items) {
-			dict[item.key.toString()] = this.get(item.key.toString());
-		}
-		return dict;
-	}
-
-	/**
 	 * Convert a frontmatter item to a list.
 	 * @param key The key of the frontmatter item.
 	 * @returns The frontmatter block.
@@ -85,7 +57,7 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	 * - bar
 	 * ---
 	 */
-	public convertToList(key: string): this {
+	public convertKeyToList(key: string): this {
 		const scalar = this.get(key);
 		if (scalar instanceof Array) return this;
 
@@ -114,7 +86,7 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	 * foo: bar, baz
 	 * ---
 	 */
-	public convertToScalar(key: string, join = ", "): this {
+	public convertKeyToScalar(key: string, join = ", "): this {
 		const list = this.get(key);
 		if (!(list instanceof Array)) return this;
 
@@ -124,11 +96,49 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	}
 
 	/**
+	 *
+	 * @returns A dictionary of all frontmatter items.
+	 *
+	 * @example
+	 * const frontmatter = FrontmatterBlock.create({
+	 *   title: "Hello, world!",
+	 *   tags: ["foo", "bar", "baz"],
+	 *   date: "2021-01-01",
+	 * });
+	 *
+	 * const dict = frontmatter.getDict();
+	 *
+	 * // returns:
+	 * // {
+	 * //   title: "Hello, world!",
+	 * //   tags: ["foo", "bar", "baz"],
+	 * //   date: "2021-01-01",
+	 * // }
+	 */
+	public getDict(): Record<string, string | string[] | undefined> {
+		const dict: Record<string, string | string[] | undefined> = {};
+		for (const item of this.stmt.items) {
+			dict[item.key.toString()] = this.get(item.key.toString());
+		}
+		return dict;
+	}
+
+	/**
+	 * Merge another frontmatter list into this one.
+	 * @param other The frontmatter items to merge into this list.
+	 */
+	public merge(other: Record<string, string | string[]>) {
+		for (const key in other) {
+			this.set(key, other[key] ?? "");
+		}
+	}
+
+	/**
 	 * Move a frontmatter item to a specific index.
 	 * @param key The key of the frontmatter item to move.
 	 * @param index The index to move the frontmatter item to.
 	 */
-	public move(key: string, index: number) {
+	public moveKey(key: string, index: number) {
 		const item = this.findItem(key);
 		if (item) {
 			this.stmt.items.splice(this.stmt.items.indexOf(item), 1);
@@ -140,27 +150,36 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	 * Move a frontmatter item to the top of the list.
 	 * @param key The key of the frontmatter item to move.
 	 */
-	public moveToTop(key: string) {
-		this.move(key, 0);
+	public moveKeyToTop(key: string) {
+		this.moveKey(key, 0);
 	}
 
 	/**
 	 * Move a frontmatter item to the bottom of the list.
 	 * @param key The key of the frontmatter item to move.
 	 */
-	public moveToBottom(key: string) {
-		this.move(key, this.stmt.items.length - 1);
+	public moveKeyToBottom(key: string) {
+		this.moveKey(key, this.stmt.items.length - 1);
 	}
 
 	/**
 	 * Remove a frontmatter item.
 	 * @param key The key of the frontmatter item.
 	 */
-	public remove(key: string): void {
+	public removeKey(key: string): void {
 		const item = this.findItem(key);
 		if (item) {
 			this.stmt.items.splice(this.stmt.items.indexOf(item), 1);
 		}
+	}
+
+	/**
+	 * Replace the frontmatter items with a new dictionary.
+	 * @param dict The dictionary of frontmatter items to replace the current frontmatter items with.
+	 */
+	public replace(dict: Record<string, string | string[]>) {
+		this.stmt.items = [];
+		this.merge(dict);
 	}
 
 	/**
@@ -185,8 +204,8 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	 * Alphabetically sorts the frontmatter keys.
 	 * @returns The frontmatter block.
 	 */
-	public sortKeys(): this {
-		return this.sortKeysBy((a, b) => a.localeCompare(b));
+	public sort(): this {
+		return this.sortBy((a, b) => a.localeCompare(b));
 	}
 
 	/**
@@ -195,7 +214,7 @@ export class FrontmatterBlock extends Block<FrontmatterStatement> {
 	 * @param compareFn The function to compare the keys.
 	 * @returns The frontmatter block.
 	 */
-	public sortKeysBy(compareFn: (a: string, b: string) => number): this {
+	public sortBy(compareFn: (a: string, b: string) => number): this {
 		this.stmt.items.sort((a, b) =>
 			compareFn(a.key.toString(), b.key.toString())
 		);

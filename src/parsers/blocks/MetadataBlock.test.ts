@@ -63,7 +63,7 @@ describe("MetadataListBlock", () => {
 			moo: "zar",
 		});
 
-		block.remove("foo");
+		block.removeKey("foo");
 
 		expect(block.toString().split("\n")).toEqual(["moo:: zar", ""]);
 	});
@@ -121,7 +121,7 @@ describe("MetadataListBlock", () => {
 			foo: "bar",
 		});
 
-		block.moveToTop("foo");
+		block.moveKeyToTop("foo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"foo:: bar",
@@ -138,7 +138,7 @@ describe("MetadataListBlock", () => {
 			foo: "bar",
 		});
 
-		block.moveToBottom("moo");
+		block.moveKeyToBottom("moo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"aaa:: bbb",

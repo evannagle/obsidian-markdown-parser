@@ -37,7 +37,9 @@ export class ListBlock extends Block<ListStatement> {
 
 	public constructor(statement: ListStatement) {
 		super(statement);
-		this.items = this.stmt.items.map((item) => new ListItemBlock(item));
+		this.items = this.stmt.items.map(
+			(item) => new ListItemBlock(item, this)
+		);
 	}
 
 	/**
@@ -49,18 +51,22 @@ export class ListBlock extends Block<ListStatement> {
 		item: listItemBlockTypesOrStr | listItemBlockTypesOrStr[],
 		sublist?: ListBlock
 	): this {
+		if (sublist) {
+			sublist.tab = this.tab + 1;
+		}
+
 		if (typeof item === "string") {
 			return this.addString(item, sublist);
 		} else if (Array.isArray(item)) {
 			item.map((i) => this.add(i, sublist));
 			return this;
 		} else if (item instanceof ListItemBaseBlock) {
-			if (sublist) {
-				sublist.tab = this.tab + 1;
-			}
+			item.parent = this;
+			const itemStatment = item.releaseStatementToParent(this);
 
-			item.setParentListTo(this.stmt);
 			this.items.push(item);
+			this.stmt.items.push(itemStatment);
+			item.tab = this.tab;
 			// this.stmt.items.push(item.stmt);
 		} else {
 			throw new Error("Invalid item type: " + typeof item);
@@ -74,9 +80,11 @@ export class ListBlock extends Block<ListStatement> {
 	 * In most cases, you should use add() instead.
 	 * @param stmt The list item statement to add.
 	 */
-	public addStatement(stmt: ListItemBaseStatement): this {
+	protected addStatement(stmt: ListItemBaseStatement): this {
+		const item = new ListItemBlock(stmt);
+		item.tab = this.tab;
 		this.stmt.items.push(stmt);
-		this.items.push(new ListItemBlock(stmt));
+		this.items.push(item);
 		return this;
 	}
 
@@ -85,11 +93,7 @@ export class ListBlock extends Block<ListStatement> {
 	 * @param item The content of the list item.
 	 * @param sublist An indented sublist under this list item.
 	 */
-	public addString(item: string, sublist?: ListBlock): this {
-		if (sublist) {
-			sublist.tab = this.tab + 1;
-		}
-
+	protected addString(item: string, sublist?: ListBlock): this {
 		const stmt = ListItemStatement.create(0, item, sublist?.stmt);
 		this.addStatement(stmt);
 		return this;
@@ -101,9 +105,25 @@ export class ListBlock extends Block<ListStatement> {
 	 * @returns A new list block.
 	 */
 	public static create(...items: string[]): ListBlock {
-		const listBlock = new ListBlock(new ListStatement([]));
-		listBlock.add(items);
-		return listBlock;
+		return new ListBlock(ListStatement.createAtTab(0, items));
+	}
+
+	/**
+	 * Find the first item that matches the specified function.
+	 * @param where The function to use to find the item.
+	 * @returns
+	 */
+	public firstItemWhere(
+		where: (item: listItemBlockTypes) => boolean
+	): listItemBlockTypes | undefined {
+		for (let i = 0; i < this.items.length; i++) {
+			const item = this.items[i];
+			if (item && where(item)) {
+				return item;
+			}
+		}
+
+		return undefined;
 	}
 
 	/**
@@ -119,20 +139,77 @@ export class ListBlock extends Block<ListStatement> {
 	}
 
 	/**
+	 * Get the item at the specified index.
+	 * @param value The value to search for.
+	 * @returns
+	 */
+	public hasValue(value: string): boolean {
+		return this.items.some((item) => item.content === value);
+	}
+
+	/**
 	 * Remove the item at the specified index.
 	 * @param index The index of the item to remove.
 	 */
-	public remove(index: number): this {
+	public removeItem(index: number): this {
 		this.stmt.items.splice(index, 1);
 		this.items.splice(index, 1);
 		return this;
 	}
 
 	/**
+	 * Get the first item that matches the specified function.
+	 * If no item matches the function, an error is thrown.
+	 * @param where The function to use to find the item.
+	 * @returns The first item that matches the specified function.
+	 */
+	public singleItemWhere(
+		where: (item: listItemBlockTypes) => boolean
+	): listItemBlockTypes {
+		const item = this.items.find(where);
+		if (!item) {
+			throw new Error("Item not found");
+		}
+		return item;
+	}
+
+	/**
+	 * Sort the items in the list.
+	 * @param compareFn The function to use to compare the items.
+	 */
+	public sortBy(compareFn: (a: ListItemBlock, b: ListItemBlock) => number) {
+		this.items.sort(compareFn);
+		this.stmt.items = this.items.map((item) =>
+			item.releaseStatementToParent(this)
+		);
+	}
+
+	/**
+	 * Sort the items in the list by alphabetical order.
+	 */
+	public sort() {
+		this.sortBy((a, b) => {
+			if (a.content < b.content) {
+				return -1;
+			} else if (a.content > b.content) {
+				return 1;
+			} else {
+				return 0;
+			}
+		});
+	}
+
+	/**
 	 * Gets the tab level of the list.
 	 */
 	public get tab(): number {
-		return this.items?.[0]?.tab ?? 0;
+		const tab = this.items?.[0]?.tab as number;
+		if (tab === undefined) {
+			return 0;
+		} else {
+			return tab;
+		}
+		// return tab ?? 0;
 	}
 
 	/**
@@ -167,7 +244,24 @@ export class ListBlock extends Block<ListStatement> {
 export class ListItemBaseBlock<
 	T extends ListItemBaseStatement
 > extends Block<T> {
+	constructor(statement: T) {
+		super(statement);
+		if (statement.list) {
+			// this.setParentListTo(statement.list);
+			this.sublist = new ListBlock(statement.list);
+		}
+	}
+
 	protected _sublist?: ListBlock;
+	protected _parent?: ListBlock;
+
+	public get parent(): ListBlock | undefined {
+		return this._parent;
+	}
+
+	public set parent(parent: ListBlock | undefined) {
+		this._parent = parent;
+	}
 
 	/**
 	 * Add a sublist of items under the current list item.
@@ -211,11 +305,17 @@ export class ListItemBaseBlock<
 	}
 
 	/**
-	 * Set the given list as the parent list of the list item.
-	 * @param list The list to add the item to.
+	 *
+	 * @param parent The parent list to release the statement to.
+	 * @returns
 	 */
-	public setParentListTo(list: ListStatement) {
-		list.items.push(this.stmt);
+	public releaseStatementToParent(parent: ListBlock): ListItemStatement {
+		if (this.parent !== parent) {
+			console.log("x", this.parent, this);
+			throw new Error("Parent does not contain this item");
+		}
+
+		return this.stmt;
 	}
 
 	/**
@@ -241,6 +341,11 @@ export class ListItemBaseBlock<
  * - [ ] item 2 <-- This is a list item.
  */
 export class ListItemBlock extends ListItemBaseBlock<ListItemStatement> {
+	public constructor(statement: ListItemStatement, parent?: ListBlock) {
+		super(statement);
+		this.parent = parent;
+	}
+
 	/**
 	 * Convert a string, ListItemBlock, or ListItemStatement to a ListItemBlock.
 	 * @param item The item to convert.
@@ -345,10 +450,6 @@ export class NumberedListBlock extends ListBlock {
 	 * @param sublist An indented sublist under this list item.
 	 */
 	public override addString(item: string, sublist?: NumberedListBlock): this {
-		if (sublist) {
-			sublist.tab = this.tab + 1;
-		}
-
 		const stmt = NumberedListItemStatement.create(
 			0,
 			this.items.length + this._startingIndex,
@@ -374,8 +475,8 @@ export class NumberedListBlock extends ListBlock {
 	 * Remove the item at the specified index.
 	 * @param index The index of the item to remove.
 	 */
-	public override remove(index: number): this {
-		super.remove(index);
+	public override removeItem(index: number): this {
+		super.removeItem(index);
 		this.renumber();
 		return this;
 	}

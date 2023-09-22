@@ -93,7 +93,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.remove("foo");
+		block.removeKey("foo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",
@@ -125,7 +125,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.convertToList("foo");
+		block.convertKeyToList("foo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",
@@ -142,7 +142,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.convertToScalar("foo", ";");
+		block.convertKeyToScalar("foo", ";");
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",
@@ -173,7 +173,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.sortKeys();
+		block.sort();
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",
@@ -193,7 +193,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.moveToTop("moo");
+		block.moveKeyToTop("moo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",
@@ -213,7 +213,7 @@ describe("FrontmatterBlock", () => {
 			moo: "zar",
 		});
 
-		block.moveToBottom("foo");
+		block.moveKeyToBottom("foo");
 
 		expect(block.toString().split("\n")).toEqual([
 			"---",

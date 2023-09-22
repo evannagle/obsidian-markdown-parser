@@ -8,8 +8,7 @@ import {
 } from "./ListBlock";
 import { parse } from "../Parser";
 import { nl } from "src/scanners/ScannerBase";
-import { ListStatement, NumberedListStatement } from "../statements";
-import { printStatement } from "src/visitors/DebugVisitor";
+import { NumberedListStatement } from "../statements";
 
 describe("ListBlock", () => {
 	it("creates a ListBlock", () => {
@@ -52,7 +51,7 @@ describe("ListBlock", () => {
 	it("removes an item from the list", () => {
 		const listBlock = NumberedListBlock.create("foo", "bar", "baz", "dung");
 
-		listBlock.remove(1);
+		listBlock.removeItem(1);
 
 		expect(listBlock.toString().split("\n")).toEqual([
 			"1. foo",
@@ -169,6 +168,7 @@ describe("ListBlock", () => {
 		listItemA.sublist = ListBlock.create("moo", "zar", "car");
 
 		const listItemB = listItemA.sublist?.get(1) as ListItemBlock;
+
 		listItemB.sublist = ListBlock.create("dar");
 
 		expect(listBlock.toString().split("\n")).toEqual([
@@ -190,11 +190,86 @@ describe("ListBlock", () => {
 
 		const listBlock = new NumberedListBlock(listStatement);
 
-		listBlock.remove(1).startAt(3);
+		listBlock.removeItem(1).startAt(3);
 
 		expect(listStatement.toString().split("\n")).toEqual([
 			"3. foo",
 			"4. baz",
+			"",
+		]);
+	});
+
+	it("adds list items at the same tab level", () => {
+		const listStatement = parse(
+			nl("- foo", "  - bar", "")
+		).list() as NumberedListStatement;
+
+		const listBlock = new NumberedListBlock(listStatement);
+
+		listBlock.get(0).sublist?.add("baz");
+
+		expect(listStatement.toString().split("\n")).toEqual([
+			"- foo",
+			"  - bar",
+			"  - baz",
+			"",
+		]);
+	});
+
+	it("parses and modifies a nested list", () => {
+		const listStatement = parse(
+			nl(
+				"1. foo",
+				"2. bar",
+				"  1. moo",
+				"  2. zar",
+				"    1. dar",
+				"  3. car",
+				"3. baz",
+				""
+			)
+		).list() as NumberedListStatement;
+
+		const listBlock = new NumberedListBlock(listStatement);
+
+		listBlock.get(1).sublist?.get(1).sublist?.add("woah");
+
+		expect(listStatement.toString().split("\n")).toEqual([
+			"1. foo",
+			"2. bar",
+			"  1. moo",
+			"  2. zar",
+			"    1. dar",
+			"    - woah",
+			"  3. car",
+			"3. baz",
+			"",
+		]);
+	});
+
+	it("sorts list items", () => {
+		const listBlock = ListBlock.create("foo", "bar", "baz");
+
+		listBlock.sort();
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"- bar",
+			"- baz",
+			"- foo",
+			"",
+		]);
+	});
+
+	it("allows querying and editing using single", () => {
+		const listBlock = ListBlock.create("foo", "bar", "baz");
+
+		const bar = listBlock.singleItemWhere((item) => item.content === "bar");
+		bar.content = "not bar";
+
+		expect(listBlock.toString().split("\n")).toEqual([
+			"- foo",
+			"- not bar",
+			"- baz",
 			"",
 		]);
 	});

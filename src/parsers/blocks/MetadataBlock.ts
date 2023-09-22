@@ -49,11 +49,21 @@ export class MetadataListBlock extends Block<MetadataListStatement> {
 	}
 
 	/**
+	 * Merge another metadata list into this one.
+	 * @param other The metadata items to merge into this list.
+	 */
+	public merge(other: Record<string, string>) {
+		for (const key in other) {
+			this.set(key, other[key] ?? "");
+		}
+	}
+
+	/**
 	 * Move a metadata item to a new index.
 	 * @param key The key of the metadata item to move.
 	 * @param index The index to move the metadata item to.
 	 */
-	public move(key: string, index: number) {
+	public moveKey(key: string, index: number) {
 		const item = this.findItem(key);
 		if (item) {
 			this.stmt.items.splice(this.stmt.items.indexOf(item), 1);
@@ -65,27 +75,36 @@ export class MetadataListBlock extends Block<MetadataListStatement> {
 	 * Move a metadata item to the top of the list.
 	 * @param key The key of the metadata item to move.
 	 */
-	public moveToTop(key: string) {
-		this.move(key, 0);
+	public moveKeyToTop(key: string) {
+		this.moveKey(key, 0);
 	}
 
 	/**
 	 * Move a metadata item to the bottom of the list.
 	 * @param key The key of the metadata item to move.
 	 */
-	public moveToBottom(key: string) {
-		this.move(key, this.stmt.items.length - 1);
+	public moveKeyToBottom(key: string) {
+		this.moveKey(key, this.stmt.items.length - 1);
 	}
 
 	/**
 	 * Remove a metadata item.
 	 * @param key The key of the metadata item.
 	 */
-	public remove(key: string): void {
+	public removeKey(key: string): void {
 		const item = this.findItem(key);
 		if (item) {
 			this.stmt.items.splice(this.stmt.items.indexOf(item), 1);
 		}
+	}
+
+	/**
+	 * Replace the current list of metadata items with a new list.
+	 * @param dict The dictionary of metadata items to replace the current list with.
+	 */
+	public replace(dict: Record<string, string>) {
+		this.stmt.items = [];
+		this.merge(dict);
 	}
 
 	/**
