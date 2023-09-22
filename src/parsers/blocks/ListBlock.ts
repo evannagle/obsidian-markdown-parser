@@ -48,12 +48,12 @@ export class ListBlock extends Block<ListStatement> {
 	public add(
 		item: listItemBlockTypesOrStr | listItemBlockTypesOrStr[],
 		sublist?: ListBlock
-	): void {
+	): this {
 		if (typeof item === "string") {
 			return this.addString(item, sublist);
 		} else if (Array.isArray(item)) {
 			item.map((i) => this.add(i, sublist));
-			return;
+			return this;
 		} else if (item instanceof ListItemBaseBlock) {
 			if (sublist) {
 				sublist.tab = this.tab + 1;
@@ -65,6 +65,8 @@ export class ListBlock extends Block<ListStatement> {
 		} else {
 			throw new Error("Invalid item type: " + typeof item);
 		}
+
+		return this;
 	}
 
 	/**
@@ -72,9 +74,10 @@ export class ListBlock extends Block<ListStatement> {
 	 * In most cases, you should use add() instead.
 	 * @param stmt The list item statement to add.
 	 */
-	public addStatement(stmt: ListItemBaseStatement): void {
+	public addStatement(stmt: ListItemBaseStatement): this {
 		this.stmt.items.push(stmt);
 		this.items.push(new ListItemBlock(stmt));
+		return this;
 	}
 
 	/**
@@ -82,13 +85,14 @@ export class ListBlock extends Block<ListStatement> {
 	 * @param item The content of the list item.
 	 * @param sublist An indented sublist under this list item.
 	 */
-	public addString(item: string, sublist?: ListBlock): void {
+	public addString(item: string, sublist?: ListBlock): this {
 		if (sublist) {
 			sublist.tab = this.tab + 1;
 		}
 
 		const stmt = ListItemStatement.create(0, item, sublist?.stmt);
 		this.addStatement(stmt);
+		return this;
 	}
 
 	/**
@@ -118,9 +122,10 @@ export class ListBlock extends Block<ListStatement> {
 	 * Remove the item at the specified index.
 	 * @param index The index of the item to remove.
 	 */
-	public remove(index: number): void {
+	public remove(index: number): this {
 		this.stmt.items.splice(index, 1);
 		this.items.splice(index, 1);
+		return this;
 	}
 
 	/**
@@ -313,11 +318,20 @@ export class NumberedListItemBlock extends ListItemBaseBlock<NumberedListItemSta
  * 4. item 4
  */
 export class NumberedListBlock extends ListBlock {
-	public override addStatement(stmt: ListItemBaseStatement): void {
+	public constructor(statement: NumberedListStatement) {
+		super(statement);
+		this.items = this.stmt.items.map(
+			(item) =>
+				new NumberedListItemBlock(item as NumberedListItemStatement)
+		);
+	}
+
+	public override addStatement(stmt: ListItemBaseStatement): this {
 		this.stmt.items.push(stmt);
 		this.items.push(
 			new NumberedListItemBlock(stmt as NumberedListItemStatement)
 		);
+		return this;
 	}
 
 	/**
@@ -325,7 +339,7 @@ export class NumberedListBlock extends ListBlock {
 	 * @param item The content of the list item.
 	 * @param sublist An indented sublist under this list item.
 	 */
-	public override addString(item: string, sublist?: NumberedListBlock): void {
+	public override addString(item: string, sublist?: NumberedListBlock): this {
 		if (sublist) {
 			sublist.tab = this.tab + 1;
 		}
@@ -337,6 +351,7 @@ export class NumberedListBlock extends ListBlock {
 			sublist?.stmt
 		);
 		this.addStatement(stmt);
+		return this;
 	}
 
 	/**
@@ -354,15 +369,16 @@ export class NumberedListBlock extends ListBlock {
 	 * Remove the item at the specified index.
 	 * @param index The index of the item to remove.
 	 */
-	public override remove(index: number): void {
+	public override remove(index: number): this {
 		super.remove(index);
 		this.renumber();
+		return this;
 	}
 
 	/**
 	 * Renumber the list items.
 	 */
-	public renumber(start?: number): void {
+	public renumber(start?: number): this {
 		start = start ?? this._startingIndex;
 
 		this.items.forEach((item, index) => {
@@ -370,6 +386,8 @@ export class NumberedListBlock extends ListBlock {
 				item.number = index + start!;
 			}
 		});
+
+		return this;
 	}
 
 	/**

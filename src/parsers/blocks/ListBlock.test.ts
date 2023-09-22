@@ -6,6 +6,10 @@ import {
 	NumberedListBlock,
 	NumberedListItemBlock,
 } from "./ListBlock";
+import { parse } from "../Parser";
+import { nl } from "src/scanners/ScannerBase";
+import { ListStatement, NumberedListStatement } from "../statements";
+import { printStatement } from "src/visitors/DebugVisitor";
 
 describe("ListBlock", () => {
 	it("creates a ListBlock", () => {
@@ -175,6 +179,22 @@ describe("ListBlock", () => {
 			"    - dar",
 			"  - car",
 			"- baz",
+			"",
+		]);
+	});
+
+	it("parses and modifies a list block statement", () => {
+		const listStatement = parse(
+			nl("1. foo", "2. bar", "3. baz", "")
+		).list() as NumberedListStatement;
+
+		const listBlock = new NumberedListBlock(listStatement);
+
+		listBlock.remove(1).startAt(3);
+
+		expect(listStatement.toString().split("\n")).toEqual([
+			"3. foo",
+			"4. baz",
 			"",
 		]);
 	});
