@@ -37,6 +37,47 @@ export class MetadataListBlock extends Block<MetadataListStatement> {
 	}
 
 	/**
+	 * Gets the value of a metadata item.
+	 * @returns A dictionary of all metadata items.
+	 */
+	public getDict(): Record<string, string> {
+		const dict: Record<string, string> = {};
+		for (const item of this.stmt.items) {
+			dict[item.key.toString()] = item.value?.toString() ?? "";
+		}
+		return dict;
+	}
+
+	/**
+	 * Move a metadata item to a new index.
+	 * @param key The key of the metadata item to move.
+	 * @param index The index to move the metadata item to.
+	 */
+	public move(key: string, index: number) {
+		const item = this.findItem(key);
+		if (item) {
+			this.stmt.items.splice(this.stmt.items.indexOf(item), 1);
+			this.stmt.items.splice(index, 0, item);
+		}
+	}
+
+	/**
+	 * Move a metadata item to the top of the list.
+	 * @param key The key of the metadata item to move.
+	 */
+	public moveToTop(key: string) {
+		this.move(key, 0);
+	}
+
+	/**
+	 * Move a metadata item to the bottom of the list.
+	 * @param key The key of the metadata item to move.
+	 */
+	public moveToBottom(key: string) {
+		this.move(key, this.stmt.items.length - 1);
+	}
+
+	/**
 	 * Remove a metadata item.
 	 * @param key The key of the metadata item.
 	 */
@@ -63,15 +104,21 @@ export class MetadataListBlock extends Block<MetadataListStatement> {
 	}
 
 	/**
-	 * Gets the value of a metadata item.
-	 * @returns A dictionary of all metadata items.
+	 * Sort the keys of the metadata list by alphabetical order.
 	 */
-	public getDict(): Record<string, string> {
-		const dict: Record<string, string> = {};
-		for (const item of this.stmt.items) {
-			dict[item.key.toString()] = item.value?.toString() ?? "";
-		}
-		return dict;
+	public sortKeys() {
+		this.sortKeysBy((a, b) => a.localeCompare(b));
+	}
+
+	/**
+	 * Sort the keys of the metadata list.
+	 * If sorting by alphabetical order, use `sortKeys()` instead.
+	 * @param compareFn The function to use to compare the keys.
+	 */
+	public sortKeysBy(compareFn: (a: string, b: string) => number) {
+		this.stmt.items.sort((a, b) =>
+			compareFn(a.key.toString(), b.key.toString())
+		);
 	}
 
 	public static create(items: Record<string, string>): MetadataListBlock {

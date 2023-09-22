@@ -96,4 +96,55 @@ describe("MetadataListBlock", () => {
 		tag.value = "baz";
 		expect(tag.toString()).toBe("[foo:: baz]");
 	});
+
+	it("sorts keys alphabetically", () => {
+		const block = MetadataListBlock.create({
+			foo: "bar",
+			moo: "zar",
+			aaa: "bbb",
+		});
+
+		block.sortKeys();
+
+		expect(block.toString().split("\n")).toEqual([
+			"aaa:: bbb",
+			"foo:: bar",
+			"moo:: zar",
+			"",
+		]);
+	});
+
+	it("moves a key to the top", () => {
+		const block = MetadataListBlock.create({
+			moo: "zar",
+			aaa: "bbb",
+			foo: "bar",
+		});
+
+		block.moveToTop("foo");
+
+		expect(block.toString().split("\n")).toEqual([
+			"foo:: bar",
+			"moo:: zar",
+			"aaa:: bbb",
+			"",
+		]);
+	});
+
+	it("moves a key to the bottom", () => {
+		const block = MetadataListBlock.create({
+			moo: "zar",
+			aaa: "bbb",
+			foo: "bar",
+		});
+
+		block.moveToBottom("moo");
+
+		expect(block.toString().split("\n")).toEqual([
+			"aaa:: bbb",
+			"foo:: bar",
+			"moo:: zar",
+			"",
+		]);
+	});
 });

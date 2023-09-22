@@ -326,6 +326,11 @@ export class NumberedListBlock extends ListBlock {
 		);
 	}
 
+	/**
+	 * Add an item to the list.
+	 * @param stmt The list item statement to add.
+	 * @returns
+	 */
 	public override addStatement(stmt: ListItemBaseStatement): this {
 		this.stmt.items.push(stmt);
 		this.items.push(
