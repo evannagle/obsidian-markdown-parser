@@ -1,13 +1,13 @@
 import { TokenType } from "src/tokens/TokenType";
 import { ParserBase } from "./ParserBase";
 import {
-	FrontmatterItemStatement,
-	FrontmatterListAttrStatement,
-	FrontmatterListItemStatement,
-	FrontmatterListStatement,
-	FrontmatterScalarAttrStatement,
 	FrontmatterStatement,
-} from "./statements";
+	FrontmatterItemStatement,
+	FrontmatterScalarAttrStatement,
+	FrontmatterListAttrStatement,
+	FrontmatterListStatement,
+	FrontmatterListItemStatement,
+} from "./statements/FrontmatterStatement";
 
 export class FrontmatterParser extends ParserBase {
 	public parse(): FrontmatterStatement {

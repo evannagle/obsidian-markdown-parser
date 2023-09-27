@@ -18,7 +18,7 @@ export class SectionStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.heading, this.lede, ...this.sections];
 	}
 
@@ -61,7 +61,7 @@ export class HeadingStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.hhash, this.space, this.content, this.br];
 	}
 

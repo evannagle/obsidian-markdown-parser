@@ -13,7 +13,7 @@ export class TableStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.rows;
 	}
 
@@ -49,7 +49,7 @@ export class TableRowStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [...this.cells, this.br];
 	}
 
@@ -94,7 +94,7 @@ export class TableCellStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.barOnLeft, this.content, this.barOnRight];
 	}
 

@@ -1,50 +1,61 @@
 import { TokenType } from "src/tokens/TokenType";
 import { EOL_TOKENS, ParserBase } from "./ParserBase";
-
-import {
-	BoldStatement,
-	BookmarkStatement,
-	CheckboxStatement,
-	CodeStatement,
-	ContentStatement,
-	DocumentStatement,
-	ExternalLinkStatement,
-	FrontmatterStatement,
-	HeadingStatement,
-	HighlightStatement,
-	HrStatement,
-	HtmlStatement,
-	ImageLinkStatement,
-	InlineCodeStatement,
-	InlineLatexStatement,
-	InternalLinkStatement,
-	ItalicStatement,
-	LatexStatement,
-	ListItemStatement,
-	ListStatement,
-	MetadataListStatement,
-	MetadataItemStatement,
-	MetadataTagStatement,
-	NumberedListItemStatement,
-	NumberedListStatement,
-	ParagraphStatement,
-	PlainTextStatement,
-	QuoteStatement,
-	RichTextStatement,
-	SectionStatement,
-	Statement,
-	StrikethroughStatement,
-	TableCellStatement,
-	TableRowStatement,
-	TableStatement,
-	TagStatement,
-	getNameOfHtmlTag,
-	htmlTagIsSelfClosing,
-} from "./statements";
-
+import { BookmarkStatement } from "./statements/BookmarkStatement";
+import { PlainTextStatement } from "./statements/PlainTextStatement"; // avoid circular dependency
 import { FrontmatterParser } from "./FrontmatterParser";
 import { CodeBlockParser } from "./CodeBlockParser";
 import { Token } from "src/tokens/Token";
+import { CodeStatement, LatexStatement } from "./statements/CodeStatement";
+import { ContentStatement } from "./statements/ContentStatement";
+import { DocumentStatement } from "./statements/DocumentStatement";
+import {
+	BoldStatement,
+	HighlightStatement,
+	ItalicStatement,
+	StrikethroughStatement,
+} from "./statements/FormattingStatement";
+import { FrontmatterStatement } from "./statements/FrontmatterStatement";
+import { HrStatement } from "./statements/HrStatement";
+import {
+	HtmlStatement,
+	htmlTagIsSelfClosing,
+	getNameOfHtmlTag,
+} from "./statements/HtmlStatement";
+import {
+	InlineCodeStatement,
+	InlineLatexStatement,
+} from "./statements/InlineCodeStatement";
+import {
+	ExternalLinkStatement,
+	ImageLinkStatement,
+	InternalLinkStatement,
+} from "./statements/LinkStatement";
+import {
+	CheckboxStatement,
+	ListStatement,
+	ListItemStatement,
+	NumberedListStatement,
+	NumberedListItemStatement,
+} from "./statements/ListStatement";
+import {
+	MetadataListStatement,
+	MetadataItemStatement,
+	MetadataTagStatement,
+} from "./statements/MetadataStatement";
+import { ParagraphStatement } from "./statements/ParagraphStatement";
+import { QuoteStatement } from "./statements/QuoteStatement";
+import { RichTextStatement } from "./statements/RichTextStatement";
+import {
+	HeadingStatement,
+	SectionStatement,
+} from "./statements/SectionStatement";
+import { Statement } from "./statements/Statement";
+import {
+	TableStatement,
+	TableRowStatement,
+	TableCellStatement,
+} from "./statements/TableStatement";
+import { TagStatement } from "./statements/TagStatement";
 
 export const PLAINTEXT_TOKENS = [
 	TokenType.SYMBOL,

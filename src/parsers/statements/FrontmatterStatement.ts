@@ -39,7 +39,7 @@ export class FrontmatterStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.opening, this.br, ...this.items, this.closing];
 	}
 
@@ -90,7 +90,7 @@ export class FrontmatterItemStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
@@ -214,7 +214,7 @@ export class FrontmatterListStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.items;
 	}
 	/**
@@ -258,7 +258,7 @@ export class FrontmatterListItemStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.bullet, this.space, this.value, this.br];
 	}
 

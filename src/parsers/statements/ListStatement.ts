@@ -38,7 +38,7 @@ export class ListStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.items;
 	}
 
@@ -173,7 +173,7 @@ export abstract class ListItemBaseStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [
 			this.tab,
 			this.bullet,

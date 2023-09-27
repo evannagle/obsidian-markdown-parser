@@ -31,7 +31,7 @@ export class CodeStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [
 			this.backticksOnTop,
 			this.language,
@@ -59,9 +59,9 @@ export class CodeStatement extends Statement {
 	 * @returns The generated code block.
 	 */
 	public static create(
-		language: string | undefined,
-		metadata: Record<string, string>,
-		source: string
+		source: string,
+		language?: string,
+		metadata?: Record<string, any>
 	): CodeStatement {
 		return new CodeStatement(
 			Token.create(TokenType.CODE_START),
@@ -69,9 +69,11 @@ export class CodeStatement extends Statement {
 				? Token.create(TokenType.CODE_LANGUAGE, language)
 				: undefined,
 			Token.createBr(),
-			CodeMetadataStatement.create(
-				...CodeMetadataItemStatement.createMany(metadata)
-			),
+			metadata
+				? CodeMetadataStatement.create(
+						...CodeMetadataItemStatement.createMany(metadata)
+				  )
+				: undefined,
 			CodeSourceStatement.create(source),
 			Token.create(TokenType.CODE_END)
 		);
@@ -98,7 +100,7 @@ export class CodeMetadataStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [...this.items, this.br];
 	}
 
@@ -150,7 +152,7 @@ export class CodeMetadataItemStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
@@ -188,10 +190,10 @@ export class CodeMetadataItemStatement extends Statement {
 	 * @returns The generated metadata items.
 	 */
 	public static createMany(
-		dictionary: Record<string, string>
+		dictionary: Record<string, any>
 	): CodeMetadataItemStatement[] {
 		return Object.entries(dictionary).map(([key, value]) =>
-			CodeMetadataItemStatement.create(key, value)
+			CodeMetadataItemStatement.create(key, value.toString())
 		);
 	}
 }
@@ -219,7 +221,7 @@ export class CodeSourceStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [...this.content, this.br];
 	}
 
@@ -268,7 +270,7 @@ export class LatexStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.dollarsOnLeft, ...this.content, this.dollarsOnRight];
 	}
 

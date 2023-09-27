@@ -3,7 +3,17 @@ import { IVisitor } from "src/visitors/Visitor";
 
 export type StatementPart = Token | Statement | undefined;
 
-export abstract class Statement {
+export type lines = string | string[];
+
+export interface IStatement {
+	discriminator: string;
+	accept(visitor: IVisitor): void;
+	visitParts(visitor: IVisitor): void;
+}
+
+export abstract class Statement implements IStatement {
+	discriminator = "statement";
+
 	/**
 	 * Accepts a visitor.
 	 * @param visitor The visitor to accept.
@@ -14,7 +24,20 @@ export abstract class Statement {
 	/**
 	 * Returns the parts of the statement.
 	 */
-	protected abstract getParts(): StatementPart[];
+	public abstract getParts(): StatementPart[];
+
+	/**
+	 * Releases the parts of the statement to a block.
+	 * @param block The block to release the parts to.
+	 * @returns The parts of the statement.
+	 */
+	public releasePartsTo(block: block): StatementPart[] {
+		if (block) {
+			return this.getParts();
+		} else {
+			return [];
+		}
+	}
 
 	/**
 	 * Returns a string representation of the statement.
@@ -37,4 +60,13 @@ export abstract class Statement {
 			}
 		}
 	}
+}
+
+/**
+ * Checks if the given object is a statement.
+ * @param s The statement to check.
+ * @returns True if the class implements the IStatement interface.
+ */
+export function isStatement(s: any): s is Statement {
+	return s.discriminator === "statement";
 }

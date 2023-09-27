@@ -21,7 +21,7 @@ export class MetadataListStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.items;
 	}
 
@@ -77,7 +77,7 @@ export class MetadataItemStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.key, this.colon, this.space, this.value, this.br];
 	}
 
@@ -136,7 +136,7 @@ export class MetadataTagStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [
 			this.bracketOnLeft,
 			this.key,

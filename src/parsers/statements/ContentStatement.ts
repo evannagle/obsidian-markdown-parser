@@ -1,6 +1,7 @@
 import { IVisitor } from "src/visitors/Visitor";
 import { Statement, StatementPart } from "./Statement";
-import { Parser } from "../Parser";
+import { ParagraphStatement } from "./ParagraphStatement";
+import { Token } from "src/tokens/Token";
 
 /**
  * Represents a content statement. Content statements are used to represent
@@ -19,7 +20,7 @@ export class ContentStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.parts;
 	}
 
@@ -37,7 +38,10 @@ export class ContentStatement extends Statement {
 	 * @param content The content of the content statement.
 	 * @returns
 	 */
-	public static create(content: string): ContentStatement {
-		return new Parser(content).content() as ContentStatement;
+	public static create(content: string, margin = 0): ContentStatement {
+		return new ContentStatement([
+			ParagraphStatement.create(content),
+			margin > 0 ? Token.createBr(margin) : undefined,
+		]);
 	}
 }

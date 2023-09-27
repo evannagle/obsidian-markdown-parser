@@ -38,6 +38,10 @@ export class Token {
 		);
 	}
 
+	public static createNumLi(num: number) {
+		return Token.create(TokenType.N_BULLET, num.toString() + ".", num);
+	}
+
 	public static createSpace(spaceCount = 1) {
 		return Token.create(
 			TokenType.SPACE,

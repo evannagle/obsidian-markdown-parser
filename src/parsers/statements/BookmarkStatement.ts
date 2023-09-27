@@ -13,7 +13,7 @@ import { TokenType } from "src/tokens/TokenType";
 export class BookmarkStatement extends Statement {
 	public constructor(
 		public braceOnLeft: Token,
-		public content: PlainTextStatement,
+		public name: PlainTextStatement,
 		public braceOnRight: Token
 	) {
 		super();
@@ -23,8 +23,8 @@ export class BookmarkStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
-		return [this.braceOnLeft, this.content, this.braceOnRight];
+	public getParts(): StatementPart[] {
+		return [this.braceOnLeft, this.name, this.braceOnRight];
 	}
 
 	/**

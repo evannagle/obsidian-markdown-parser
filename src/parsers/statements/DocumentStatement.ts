@@ -27,7 +27,7 @@ export class DocumentStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.frontmatter, this.lede, ...this.sections];
 	}
 

@@ -2,6 +2,8 @@ import { Token } from "src/tokens/Token";
 import { Statement, StatementPart } from "./Statement";
 import { IVisitor } from "src/visitors/Visitor";
 import { TokenType } from "src/tokens/TokenType";
+import { scanTokens } from "src/scanners/Scanner";
+import { isAlpha } from "src/scanners/ScannerBase";
 
 export class TagStatement extends Statement {
 	public constructor(public tag: Token) {
@@ -14,14 +16,38 @@ export class TagStatement extends Statement {
 	 * @returns A new tag statement.
 	 */
 	public static create(tag: string): TagStatement {
-		return new TagStatement(Token.create(TokenType.TAG, "#" + tag, tag));
+		if (tag.startsWith("#")) {
+			tag = tag.substring(1);
+		}
+
+		if (tag.length === 0) {
+			throw new Error("Tag cannot be empty.");
+		}
+
+		if (!isAlpha(tag[0]) && !["-", "_"].includes(tag[0]!)) {
+			throw new Error(
+				`Tag must start with a letter. <${tag}> is invalid.`
+			);
+		}
+
+		if (tag.includes(" ")) {
+			throw new Error(`Tag cannot contain spaces. <${tag}> is invalid.`);
+		}
+
+		const tokens = scanTokens(`#${tag}`);
+
+		if (tokens.length !== 2 || tokens[0]?.type !== TokenType.TAG) {
+			throw new Error(`Invalid tag name: <#${tag}>.`);
+		}
+
+		return new TagStatement(tokens[0]);
 	}
 
 	/**
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.tag];
 	}
 

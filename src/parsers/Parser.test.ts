@@ -1,37 +1,44 @@
 import { parse, parseMarkdownDoc } from "./Parser";
 import { nl } from "src/scanners/ScannerBase";
 import { describe, expect, it } from "vitest";
+import { BookmarkStatement } from "./statements/BookmarkStatement";
+import { CodeStatement, LatexStatement } from "./statements/CodeStatement";
+import { ContentStatement } from "./statements/ContentStatement";
 import {
 	BoldStatement,
-	BookmarkStatement,
-	CodeStatement,
-	ContentStatement,
-	ExternalLinkStatement,
+	ItalicStatement,
+	StrikethroughStatement,
+	HighlightStatement,
+} from "./statements/FormattingStatement";
+import {
 	FrontmatterItemStatement,
 	FrontmatterListStatement,
 	FrontmatterStatement,
-	HighlightStatement,
-	HrStatement,
-	HtmlStatement,
-	ImageLinkStatement,
+} from "./statements/FrontmatterStatement";
+import { HrStatement } from "./statements/HrStatement";
+import { HtmlStatement } from "./statements/HtmlStatement";
+import {
 	InlineCodeStatement,
 	InlineLatexStatement,
+} from "./statements/InlineCodeStatement";
+import {
 	InternalLinkStatement,
-	ItalicStatement,
-	LatexStatement,
+	ExternalLinkStatement,
+	ImageLinkStatement,
+} from "./statements/LinkStatement";
+import {
 	ListStatement,
+	NumberedListStatement,
+} from "./statements/ListStatement";
+import {
 	MetadataListStatement,
 	MetadataItemStatement,
 	MetadataTagStatement,
-	NumberedListStatement,
-	ParagraphStatement,
-	PlainTextStatement,
-	QuoteStatement,
-	RichTextStatement,
-	StrikethroughStatement,
-	TableStatement,
-} from "./statements";
-import { printStatement } from "src/visitors/DebugVisitor";
+} from "./statements/MetadataStatement";
+import { ParagraphStatement } from "./statements/ParagraphStatement";
+import { PlainTextStatement } from "./statements/PlainTextStatement";
+import { QuoteStatement } from "./statements/QuoteStatement";
+import { TableStatement } from "./statements/TableStatement";
 
 describe("Parser", () => {
 	describe("bookmarks", () => {
@@ -49,9 +56,7 @@ describe("Parser", () => {
 			const paragraph = parsed.lede?.parts[0] as ParagraphStatement;
 			const bookmark = paragraph.content.parts[1] as BookmarkStatement;
 			expect(bookmark).toBeInstanceOf(BookmarkStatement);
-			expect(bookmark.content.toString()).toBe(
-				"bookmark with more symbols"
-			);
+			expect(bookmark.name.toString()).toBe("bookmark with more symbols");
 		});
 
 		it("creates a bookmark", () => {
@@ -80,12 +85,12 @@ describe("Parser", () => {
 
 		it("creates a code block", () => {
 			const codeBlock = CodeStatement.create(
+				nl("foo", "bar", "baz"),
 				"js",
 				{
 					foo: "bar",
 					baz: "zar",
-				},
-				nl("foo", "bar", "baz")
+				}
 			);
 
 			expect(codeBlock.toString().split("\n")).toEqual([
@@ -108,7 +113,7 @@ describe("Parser", () => {
 		});
 
 		it("creates content", () => {
-			const parsed = parseMarkdownDoc("foo bar baz");
+			const parsed = parseMarkdownDoc("foo bar baz\n");
 			const content = ContentStatement.create("foo bar baz");
 			expect(content.toString()).toBe(parsed.lede?.toString());
 		});

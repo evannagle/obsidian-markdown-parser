@@ -42,7 +42,7 @@ export class InternalLinkStatement extends LinkStatement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [
 			this.bracketOnLeft,
 			this.file,
@@ -91,7 +91,7 @@ export class ExternalLinkStatement extends LinkStatement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [
 			this.leftBracket,
 			this.alias,
@@ -139,7 +139,7 @@ export class ImageLinkStatement extends LinkStatement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.leftBracket, this.file, this.rightBracket];
 	}
 

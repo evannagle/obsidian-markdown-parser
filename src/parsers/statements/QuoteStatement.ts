@@ -32,7 +32,7 @@ export class QuoteStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return [this.gtOnLeft, this.space, this.content, this.br];
 	}
 

@@ -1,6 +1,6 @@
 import { IVisitor } from "src/visitors/Visitor";
 import { Statement, StatementPart } from "./Statement";
-import { Parser } from "../Parser";
+import { parse } from "../Parser";
 
 /**
  * Represents a plain text statement. No special syntax or Markdown components are allowed.
@@ -18,7 +18,7 @@ export class PlainTextStatement extends Statement {
 	 * Gets the parts of the statement.
 	 * @returns The parts of the statement.
 	 */
-	protected getParts(): StatementPart[] {
+	public getParts(): StatementPart[] {
 		return this.parts;
 	}
 
@@ -37,6 +37,6 @@ export class PlainTextStatement extends Statement {
 	 * @returns
 	 */
 	static create(content: string): PlainTextStatement {
-		return new Parser(content).plainText() as PlainTextStatement;
+		return parse(content).plainText() as PlainTextStatement;
 	}
 }
