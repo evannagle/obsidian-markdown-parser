@@ -48,7 +48,7 @@ export type CodeMetadataContent =
  * key2: value2 <-- This is a metadata item.
  * ```
  */
-export class CodeMetadataBlock extends MetadataBlock {
+export class CodeMetadataBlock extends MetadataBlock<CodeMetadataItemBlock> {
 	public override createItem(key: string, value: string) {
 		return createCodeMetadataItemBlock([key, value]);
 	}
@@ -236,7 +236,7 @@ export function createCodeMetadataBlock(content: CodeMetadataContent) {
 		);
 	}
 
-	return spawnFromContent<MetadataBlock>(
+	return spawnFromContent<CodeMetadataItemBlock>(
 		content as any,
 		CodeMetadataItemStatement
 	);

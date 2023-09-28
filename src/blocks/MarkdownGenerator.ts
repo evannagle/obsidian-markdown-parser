@@ -17,10 +17,29 @@ import {
 	createItalicBlock,
 	createStrikethroughBlock,
 } from "./FormattingBlock";
+import {
+	FrontMatterListItemBlock,
+	FrontmatterBlock,
+	FrontmatterItemBlock,
+	FrontmatterListBlock,
+	createFrontmatterBlock,
+	createFrontmatterItemBlock,
+	createFrontmatterListBlock,
+	createFrontmatterListItemBlock,
+} from "./FrontmatterBlock";
 import { HeadingBlock, createHeadingBlock } from "./HeadingBlock";
 import { HrBlock, createHrBlock } from "./HrBlock";
 import { InlineCodeBlock, createInlineCodeBlock } from "./InlineCodeBlock";
 import { LedeBlock, createLedeBlock } from "./LedeBlock";
+import {
+	ExternalLinkBlock,
+	ImageLinkBlock,
+	InternalLinkBlock,
+	LinkBlock,
+	createExternalLinkBlock,
+	createImageLinkBlock,
+	createInternalLinkBlock,
+} from "./LinkBlock";
 import {
 	CheckboxListItemBlock,
 	ListBlock,
@@ -47,14 +66,21 @@ export class MarkdownClassReference {
 	public code = CodeBlock;
 	public codeMetadata = CodeMetadataBlock;
 	public codeMetadataItem = CodeMetadataItemBlock;
+	public frontmatter = FrontmatterBlock;
+	public frontmatterItem = FrontmatterItemBlock;
+	public frontmatterList = FrontmatterListBlock;
+	public frontmatterListItem = FrontMatterListItemBlock;
 	public heading = HeadingBlock;
 	public hr = HrBlock;
 	public i = ItalicBlock;
+	public image = ImageLinkBlock;
 	public inlineCode = InlineCodeBlock;
+	public fileLink = InternalLinkBlock;
 	public latex = LatexBlock;
 	public lede = LedeBlock;
 	public list = ListBlock;
 	public li = ListItemBlock;
+	public link = LinkBlock;
 	public nli = NumberedListItemBlock;
 	public numbers = NumberedListItemBlock;
 	public p = ParagraphBlock;
@@ -65,6 +91,7 @@ export class MarkdownClassReference {
 	public tag = TagBlock;
 	public text = PlainTextBlock;
 	public token = TokenBlock;
+	public urlLink = ExternalLinkBlock;
 }
 
 export class MarkdownGenerator {
@@ -74,13 +101,19 @@ export class MarkdownGenerator {
 	public checkbox = createCheckboxBlock;
 	public code = createCodeBlock;
 	public codeMetadata = createCodeMetadataBlock;
+	public frontmatter = createFrontmatterBlock;
+	public frontmatterItem = createFrontmatterItemBlock;
+	public frontmatterList = createFrontmatterListBlock;
+	public frontmatterListItem = createFrontmatterListItemBlock;
 	public heading = createHeadingBlock;
 	public hr = createHrBlock;
 	public highlight = createHighlightBlock;
 	public i = createItalicBlock;
+	public image = createImageLinkBlock;
 	public inlineCode = createInlineCodeBlock;
 	public latex = createLatexBlock;
 	public lede = createLedeBlock;
+	public link = createInternalLinkBlock;
 	public list = createListBlock;
 	public li = createListItemBlock;
 	public nli = createNumberedListItemBlock;
@@ -93,6 +126,7 @@ export class MarkdownGenerator {
 	public tag = createTagBlock;
 	public text = createPlainTextBlock;
 	public token = createTokenBlock;
+	public urlLink = createExternalLinkBlock;
 }
 
 export const md = new MarkdownGenerator();

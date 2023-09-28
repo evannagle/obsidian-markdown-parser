@@ -10,6 +10,10 @@ import { ListItemStatement } from "src/parsers/statements/ListStatement";
 import { nl } from "src/scanners/ScannerBase";
 import { md } from "./MarkdownGenerator";
 import { MutableBlock } from "./MutableBlock";
+import { parse } from "src/parsers/Parser";
+import { printStatement } from "src/visitors/DebugVisitor";
+import { spawnBlock } from "./BlockFactory";
+import { FrontmatterBlock } from "./FrontmatterBlock";
 
 class TestContentBlock extends MutableBlock {
 	public static override allowedChildren = [];
@@ -489,6 +493,58 @@ describe("Block", () => {
 		});
 	});
 
+	describe("link", () => {
+		it("creates a link", () => {
+			const link = md.link("Document Name");
+			expect(link.toString()).toBe("[[Document Name]]");
+		});
+
+		it("sets alias", () => {
+			const link = md.link("Document Name", "doc");
+			expect(link.toString()).toBe("[[Document Name|doc]]");
+		});
+
+		it("sets alias after creation", () => {
+			const link = md.link("Document Name");
+			link.alias = "doc";
+			expect(link.toString()).toBe("[[Document Name|doc]]");
+		});
+
+		it("deletes an alias", () => {
+			const link = md.link("Document Name", "doc");
+			link.removeAlias();
+			expect(link.toString()).toBe("[[Document Name]]");
+		});
+
+		it("creates an external link", () => {
+			const link = md.urlLink("https://example.com", "example");
+			expect(link.toString()).toBe("[example](https://example.com)");
+		});
+
+		it("udpates a link url", () => {
+			const link = md.urlLink("https://example.com", "example");
+			link.url = "https://example2.com";
+			expect(link.toString()).toBe("[example](https://example2.com)");
+		});
+
+		it("udpates a link title", () => {
+			const link = md.urlLink("https://example.com", "example");
+			link.title = "example2";
+			expect(link.toString()).toBe("[example2](https://example.com)");
+		});
+
+		it("creates an image link", () => {
+			const link = md.image("foo.png");
+			expect(link.toString()).toBe("![[foo.png]]");
+		});
+
+		it("udpates an image link", () => {
+			const link = md.image("foo.png");
+			link.file = "bar.png";
+			expect(link.toString()).toBe("![[bar.png]]");
+		});
+	});
+
 	describe("section", () => {
 		it("creates a section", () => {
 			const section = md.section("foo bar");
@@ -560,6 +616,189 @@ describe("Block", () => {
 					"#### Section 2.3",
 					"",
 					""
+				)
+			);
+		});
+	});
+
+	describe("frontmatter", () => {
+		it("creates a frontmatter list item", () => {
+			const item = md.frontmatterListItem("foo");
+			expect(item.toString()).toBe("- foo\n");
+		});
+
+		it("can change a frontmatter list item value", () => {
+			const item = md.frontmatterListItem("foo");
+			item.content = "bar";
+			expect(item.toString()).toBe("- bar\n");
+		});
+
+		it("creates a frontmatter list", () => {
+			// TODO -- how to handle sublists?
+			const list = md.frontmatterList([
+				"foo",
+				"bar",
+				md.frontmatterListItem("baz"),
+			]);
+			expect(list.toString()).toBe(
+				nl("  - foo", "  - bar", "  - baz", "")
+			);
+		});
+
+		it("creates a frontmatter list and controls list tabbing", () => {
+			const list = md.frontmatterList([
+				"foo",
+				"bar",
+				md.frontmatterListItem("baz"),
+			]);
+			list.tab = 0;
+			expect(list.toString()).toBe(nl("- foo", "- bar", "- baz", ""));
+		});
+
+		it("creates a frontmatter item", () => {
+			const item = md.frontmatterItem("foo", "bar");
+			expect(item.toString()).toBe("foo: bar\n");
+		});
+
+		it("creates a frontmatter item with a list", () => {
+			const item = md.frontmatterItem("foo", ["bar", "baz"]);
+			expect(item.toString()).toBe(nl("foo:", "  - bar", "  - baz", ""));
+		});
+
+		it("gets a frontmatter list as an array", () => {
+			const item = md.frontmatterItem("foo", ["bar", "baz"]);
+			expect(item.value).toEqual(["bar", "baz"]);
+		});
+
+		it("converts a frontmatter list to a scalar", () => {
+			const item = md.frontmatterItem("foo", ["bar", "baz"]);
+			item.value = "bar2";
+			expect(item.toString()).toBe("foo: bar2\n");
+		});
+
+		it("converts a frontmatter scalar into a list", () => {
+			const item = md.frontmatterItem("foo", "bar");
+			item.value = ["bar", "baz"];
+			expect(item.toString()).toBe(nl("foo:", "  - bar", "  - baz", ""));
+		});
+
+		it("creates a frontmatter section", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			expect(frontmatter.toString()).toBe(
+				nl("---", "foo: bar", "baz:", "  - car", "  - dar", "---")
+			);
+		});
+
+		it("can update frontmatter", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			frontmatter.setKey("foo", "bar2");
+
+			expect(frontmatter.toString()).toBe(
+				nl("---", "foo: bar2", "baz:", "  - car", "  - dar", "---")
+			);
+		});
+
+		it("can remove frontmatter", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			frontmatter.removeKey("baz");
+
+			expect(frontmatter.toString()).toBe(nl("---", "foo: bar", "---"));
+		});
+
+		it("can update frontmatter key to a list", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			frontmatter.setKey("baz", ["car2", "dar2"]);
+
+			expect(frontmatter.toString()).toBe(
+				nl("---", "foo: bar", "baz:", "  - car2", "  - dar2", "---")
+			);
+		});
+
+		it("can update a frontmatter list item to a scalar value", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			frontmatter.item("baz")!.value = "car2";
+
+			expect(frontmatter.toString()).toBe(
+				nl("---", "foo: bar", "baz: car2", "---")
+			);
+		});
+
+		it("can update a frontmatter scalar value to a list", () => {
+			const frontmatter = md.frontmatter({
+				foo: "bar",
+				baz: ["car", "dar"],
+			});
+
+			frontmatter.item("foo")!.value = ["bar2", "baz2"];
+
+			expect(frontmatter.toString()).toBe(
+				nl(
+					"---",
+					"foo:",
+					"  - bar2",
+					"  - baz2",
+					"baz:",
+					"  - car",
+					"  - dar",
+					"---"
+				)
+			);
+		});
+
+		it("can modify a parsed frontmatter block", () => {
+			const frontmatter = parse(
+				nl(
+					"---",
+					"title: Hello, word!",
+					"tags:",
+					"  - foo",
+					"  - bar",
+					"date: 2021-01-01",
+					"---"
+				)
+			).frontmatter();
+
+			const block = spawnBlock(frontmatter) as FrontmatterBlock;
+
+			block.setKey("title", "Hello again, world!");
+			block.addToKey("tags", ["baz", "jazz"]);
+			block.setKey("another", ["bites", "the", "dust"]);
+
+			expect(block.toString()).toEqual(
+				nl(
+					"---",
+					"title: Hello again, world!",
+					"tags:",
+					"  - foo",
+					"  - bar",
+					"  - baz",
+					"  - jazz",
+					"date: 2021-01-01",
+					"another:",
+					"  - bites",
+					"  - the",
+					"  - dust",
+					"---"
 				)
 			);
 		});

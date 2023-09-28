@@ -8,7 +8,7 @@ import { Token } from "src/tokens/Token";
 
 export type MetadataItemContent = MetadataItemBlock | [string, string] | string;
 
-export class MetadataBlock extends MutableBlock {
+export class MetadataBlock<T extends MetadataItemBlock> extends MutableBlock {
 	protected children: MetadataItemBlock[];
 	protected br: TokenBlock;
 
@@ -38,8 +38,8 @@ export class MetadataBlock extends MutableBlock {
 	 * @param value
 	 * @returns The new MetadataItemBlock
 	 */
-	protected createItem(key: string, value: string): MetadataItemBlock {
-		return createMetadataItemBlock([key, value]);
+	protected createItem(key: string, value: string): T {
+		return createMetadataItemBlock([key, value]) as T;
 	}
 
 	// /**
@@ -85,8 +85,8 @@ export class MetadataBlock extends MutableBlock {
 	 * @param key The key of the metadata item.
 	 * @returns The metadata item with the given key.
 	 */
-	public item(key: string): MetadataItemBlock | undefined {
-		return this.children.find((item) => item.key === key);
+	public item(key: string): T | undefined {
+		return this.children.find((item) => item.key === key) as T;
 	}
 
 	/**
@@ -128,6 +128,18 @@ export class MetadataBlock extends MutableBlock {
 	public sortKeys(): this {
 		this.children.sort((a, b) => a.key.localeCompare(b.key));
 		return this;
+	}
+
+	/**
+	 * Get the metadata items as a dictionary.
+	 * @returns A dictionary of all metadata items.
+	 */
+	public toDict(): Record<string, string | string[]> {
+		const dict: Record<string, string> = {};
+		this.children.forEach((item) => {
+			dict[item.key] = item.value;
+		});
+		return dict;
 	}
 
 	/**
@@ -187,7 +199,7 @@ export class MetadataItemBlock extends Block {
 	/**
 	 * Get the value of the metadata item.
 	 */
-	public get value(): string {
+	public get value(): any {
 		return this.str(this.valueIndex);
 	}
 

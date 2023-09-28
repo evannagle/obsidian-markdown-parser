@@ -6,10 +6,34 @@ import {
 	HeadingContent,
 	createHeadingBlock,
 } from "./HeadingBlock";
-import { spawnFromContent, spawnFromContentAndCreate } from "./BlockFactory";
+import { spawnFromContentAndCreate } from "./BlockFactory";
 
 export type SectionContent = SectionBlock | SectionStatement | string;
 
+/**
+ * A block representing a section of a document.
+ *
+ * A section block is a block that contains a heading, a lede, and other subsections.
+ *
+ * Section level is determined by the level of the heading.
+ *
+ * @extends {MutableBlock}
+ *
+ * @example
+ *
+ * ```markdown
+ * # Heading
+ *
+ * This is a lede.
+ *
+ * This is a paragraph, but still part of the lede.
+ *
+ * ## Subheading
+ *
+ * This is the lede of the subheading.
+ * ```
+ *
+ */
 export class SectionBlock extends MutableBlock {
 	public children: SectionBlock[];
 	public heading: HeadingBlock;
@@ -29,10 +53,17 @@ export class SectionBlock extends MutableBlock {
 		this.children = sections;
 	}
 
+	/**
+	 * Get the section level. Determined by the level of the heading.
+	 */
 	public get level(): number {
 		return this.heading.level;
 	}
 
+	/**
+	 * Set the section level. Determined by the level of the heading.
+	 * Also relevels all children.
+	 */
 	public set level(level: number) {
 		this.heading.level = level;
 		this.relevel();
@@ -48,7 +79,10 @@ export class SectionBlock extends MutableBlock {
 		return this;
 	}
 
-	public relevel() {
+	/**
+	 * Relevels all children.
+	 */
+	protected relevel() {
 		this.heading.level = this.level;
 		this.children.forEach((child) => (child.level = this.level + 1));
 	}

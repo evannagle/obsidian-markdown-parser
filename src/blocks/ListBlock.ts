@@ -7,12 +7,7 @@ import {
 } from "src/parsers/statements/ListStatement";
 import { RichTextBlock } from "./RichTextBlock";
 import { TokenBlock, createTokenBlock } from "./TokenBlock";
-import {
-	spawnBlock,
-	spawnFromContent,
-	spawnFromContentAndCreate,
-} from "./BlockFactory";
-import { isStatement } from "src/parsers/statements/Statement";
+import { spawnFromContent, spawnFromContentAndCreate } from "./BlockFactory";
 import { Token } from "src/tokens/Token";
 import { MutableBlock } from "./MutableBlock";
 import { RichContentBlock } from "./RichContentBlock";
@@ -111,13 +106,13 @@ export class NumberedListBlock extends ListBlock {
  * 1. item 4 <-- This is a list item.
  */
 export class ListItemBlock extends RichContentBlock {
-	public static override allowedChildren = [
+	protected static override allowedChildren = [
 		TokenBlock,
 		RichTextBlock,
 		ListBlock,
 		NumberedListBlock,
 	];
-	public static override childCount = 6;
+	protected static override childCount = 6;
 	protected contentIndex = 3;
 	protected tabIndex = 0;
 	protected listIndex = 5;
@@ -278,11 +273,9 @@ export function createNumberedListBlock(
 		return new NumberedListBlock(
 			...content.map((item) => createNumberedListItemBlock(item))
 		);
-	} else if (isStatement(content)) {
-		return spawnBlock(content) as NumberedListBlock;
-	} else {
-		return content as NumberedListBlock;
 	}
+
+	return spawnFromContent<NumberedListBlock>(content, NumberedListStatement);
 }
 
 /**

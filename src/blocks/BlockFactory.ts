@@ -35,6 +35,17 @@ import { MetadataItemBlock } from "./MetadataBlock";
 import { HeadingBlock } from "./HeadingBlock";
 import { LedeBlock } from "./LedeBlock";
 import { ParagraphBlock } from "./ParagraphBlock";
+import {
+	ExternalLinkBlock,
+	ImageLinkBlock,
+	InternalLinkBlock,
+} from "./LinkBlock";
+import {
+	FrontMatterListItemBlock,
+	FrontmatterBlock,
+	FrontmatterItemBlock,
+	FrontmatterListBlock,
+} from "./FrontmatterBlock";
 
 export class BlockFactory {
 	public map = new Map<string, typeof Block>([
@@ -46,11 +57,20 @@ export class BlockFactory {
 		["CodeMetadataItemStatement", CodeMetadataItemBlock],
 		["CodeSourceStatement", CodeSourceBlock],
 		["ContentStatement", LedeBlock],
+		["ExternalLinkStatement", ExternalLinkBlock],
+		["FrontmatterStatement", FrontmatterBlock],
+		["FrontmatterScalarAttrStatement", FrontmatterItemBlock],
+		["FrontmatterListItemStatement", FrontMatterListItemBlock],
+		["FrontmatterListAttrStatement", FrontmatterItemBlock],
+		["FrontmatterScalarAttrStatement", FrontmatterItemBlock],
+		["FrontmatterListStatement", FrontmatterListBlock],
 		["ParagraphStatement", ParagraphBlock],
 		["PlainTextStatement", PlainTextBlock],
 		["RichTextStatement", RichTextBlock],
 		["HeadingStatement", HeadingBlock],
+		["ImageLinkStatement", ImageLinkBlock],
 		["InlineCodeStatement", InlineCodeBlock],
+		["InternalLinkStatement", InternalLinkBlock],
 		["ItalicStatement", ItalicBlock],
 		["LatexStatement", LatexBlock],
 		["StrikethroughStatement", StrikethroughBlock],
