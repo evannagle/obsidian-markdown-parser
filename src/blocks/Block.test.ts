@@ -455,4 +455,113 @@ describe("Block", () => {
 			);
 		});
 	});
+
+	describe("heading", () => {
+		it("creates a heading", () => {
+			const heading = md.heading(1, "foo bar");
+			expect(heading.toString()).toBe("# foo bar\n\n");
+		});
+
+		it("can change the heading level", () => {
+			const heading = md.heading(1, "foo bar");
+			heading.level = 2;
+			expect(heading.toString()).toBe("## foo bar\n\n");
+		});
+
+		it("can change the heading content", () => {
+			const heading = md.heading(1, "foo bar");
+			heading.content = "bar baz";
+			expect(heading.toString()).toBe("# bar baz\n\n");
+		});
+
+		it("can change the heading bottom margin", () => {
+			const heading = md.heading(1, "foo bar");
+			heading.bottomMargin = 2;
+			expect(heading.toString()).toBe("# foo bar\n\n");
+		});
+	});
+
+	describe("lede", () => {
+		it("creates a lede", () => {
+			const lede = md.lede("foo bar", 2);
+
+			expect(lede.toString()).toBe("foo bar\n\n");
+		});
+	});
+
+	describe("section", () => {
+		it("creates a section", () => {
+			const section = md.section("foo bar");
+			expect(section.toString()).toBe("# foo bar\n\n");
+		});
+
+		it("creates a section with a lede", () => {
+			const section = md.section("Almost a Section", "With some content");
+			expect(section.toString()).toBe(
+				"# Almost a Section\n\nWith some content\n\n"
+			);
+		});
+
+		it("creates a section with a level", () => {
+			const section = md.section("Section 2", "...").atLevel(2);
+			expect(section.toString()).toBe("## Section 2\n\n...\n\n");
+		});
+
+		it("creates nested sections", () => {
+			const section = md.section("Section 2", "...").atLevel(2);
+			const section2 = md.section("Section 3", "...").atLevel(3);
+
+			section.add(section2);
+		});
+
+		it("creates nested sections in section call", () => {
+			const section = md
+				.section(
+					"Section 2",
+					"Here is my content which is interesting",
+					[
+						md.section(
+							"Section 2.1",
+							"some content in this section",
+							[
+								md.section("Section 2.1.1", undefined, [
+									md.section("Section 2.1.1.1"),
+								]),
+								md.section("Section 2.1.2"),
+								md.section("Section 2.1.3"),
+							]
+						),
+						md.section("Section 2.2"),
+						md.section("Section 2.3"),
+					]
+				)
+				.atLevel(3);
+
+			expect(section.toString()).toBe(
+				nl(
+					"### Section 2",
+					"",
+					"Here is my content which is interesting",
+					"",
+					"#### Section 2.1",
+					"",
+					"some content in this section",
+					"",
+					"##### Section 2.1.1",
+					"",
+					"###### Section 2.1.1.1",
+					"",
+					"##### Section 2.1.2",
+					"",
+					"##### Section 2.1.3",
+					"",
+					"#### Section 2.2",
+					"",
+					"#### Section 2.3",
+					"",
+					""
+				)
+			);
+		});
+	});
 });

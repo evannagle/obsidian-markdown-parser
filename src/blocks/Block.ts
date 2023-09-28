@@ -77,7 +77,7 @@ export class Block {
 		if (source.childCount !== undefined) {
 			if (this.children.length !== source.childCount) {
 				throw new Error(
-					`Expected ${source.childCount} children, found ${this.children.length}.`
+					`Expected ${source.childCount} children, found ${this.children.length} in <${this.constructor.name}>.`
 				);
 			}
 		}
@@ -286,10 +286,12 @@ export class Block {
 		const found = this.all(type);
 
 		if (found.length === 0) {
-			throw new Error(`Expected 1 child of type ${type.name}, found 0.`);
+			throw new Error(
+				`Expected 1 child of type ${type.name}, found 0 in <${this.constructor.name}>.`
+			);
 		} else if (found.length > 1) {
 			throw new Error(
-				`Expected 1 child of type ${type.name}, found ${found.length}.`
+				`Expected 1 child of type ${type.name}, found ${found.length} in <${this.constructor.name}>.`
 			);
 		}
 

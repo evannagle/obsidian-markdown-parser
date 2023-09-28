@@ -21,6 +21,7 @@ import {
 	MetadataItemBlock,
 	MetadataItemContent,
 } from "./MetadataBlock";
+import { Token } from "src/tokens/Token";
 
 export type LatexContent = LatexBlock | LatexStatement | string;
 export type CodeContent = CodeBlockParser | CodeStatement | string;
@@ -121,6 +122,7 @@ export class CodeBlock extends MutableBlock {
 	private languageIndex = 1;
 	private metadataIndex = 3;
 	private sourceIndex = 5;
+	private brIndex = 6;
 
 	public constructor(
 		ticks: TokenBlock,
@@ -131,6 +133,20 @@ export class CodeBlock extends MutableBlock {
 		source: CodeSourceBlock
 	) {
 		super(ticks, language, topBr, metadata, bottomBr, source);
+	}
+
+	/**
+	 * Get the number of line breaks at the end of the block.
+	 */
+	public get bottomMargin(): number {
+		return this.get<TokenBlock>(this.brIndex).toNumber() ?? 0;
+	}
+
+	/**
+	 * Set the number of line breaks at the end of the block.
+	 */
+	public set bottomMargin(margin: number) {
+		this.set(this.brIndex, createTokenBlock(Token.createBr(margin)));
 	}
 
 	/**

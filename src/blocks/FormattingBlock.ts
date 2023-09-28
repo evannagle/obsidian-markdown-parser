@@ -24,8 +24,13 @@ export type StrikethroughContent =
 
 export class FormattingBlock extends Block {
 	protected static override childCount = 3;
-	// TODO: resolve RichTextBlock returning undefined
-	// protected static override allowedChildren = [TokenBlock, RichTextBlock];
+
+	constructor(...blocks: Block[]) {
+		super(...blocks);
+		// can't do this at instatiation time because of circular dependencies
+		FormattingBlock.allowedChildren = [TokenBlock, RichTextBlock];
+	}
+
 	private contentIndex = 1;
 
 	public set content(source: RichTextContent) {

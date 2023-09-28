@@ -8,8 +8,8 @@ import { TokenType } from "src/tokens/TokenType";
 export class SectionStatement extends Statement {
 	public constructor(
 		public heading: HeadingStatement,
-		public lede: ContentStatement | undefined,
-		public sections: SectionStatement[]
+		public lede: ContentStatement | undefined = undefined,
+		public sections: SectionStatement[] = []
 	) {
 		super();
 	}

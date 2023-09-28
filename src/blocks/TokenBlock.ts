@@ -8,9 +8,9 @@ export type TokenContent = TokenBlock | Token | string;
  * This text is usually a wrapper around a token.
  */
 export class TokenBlock extends Block {
-	public allowedChildren = []; // no child blocks
-	public lexeme: string;
-	public literal: TokenLiteral;
+	protected allowedChildren = []; // no child blocks
+	protected lexeme: string;
+	protected literal: TokenLiteral;
 
 	public static create(value: string, literal?: TokenLiteral): TokenBlock {
 		const block = new TokenBlock();

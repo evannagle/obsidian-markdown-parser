@@ -5,11 +5,7 @@ import {
 	NumberedListItemStatement,
 	NumberedListStatement,
 } from "src/parsers/statements/ListStatement";
-import {
-	RichTextBlock,
-	RichTextContent,
-	createRichTextBlock,
-} from "./RichTextBlock";
+import { RichTextBlock } from "./RichTextBlock";
 import { TokenBlock, createTokenBlock } from "./TokenBlock";
 import {
 	spawnBlock,
@@ -19,6 +15,7 @@ import {
 import { isStatement } from "src/parsers/statements/Statement";
 import { Token } from "src/tokens/Token";
 import { MutableBlock } from "./MutableBlock";
+import { RichContentBlock } from "./RichContentBlock";
 
 export type ListItemContent = ListItemBlock | ListItemStatement | string;
 export type ListContent =
@@ -113,7 +110,7 @@ export class NumberedListBlock extends ListBlock {
  * - [x] item 3 <-- This is a list item.
  * 1. item 4 <-- This is a list item.
  */
-export class ListItemBlock extends MutableBlock {
+export class ListItemBlock extends RichContentBlock {
 	public static override allowedChildren = [
 		TokenBlock,
 		RichTextBlock,
@@ -121,9 +118,10 @@ export class ListItemBlock extends MutableBlock {
 		NumberedListBlock,
 	];
 	public static override childCount = 6;
-	public contentIndex = 3;
-	public tabIndex = 0;
-	public listIndex = 5;
+	protected contentIndex = 3;
+	protected tabIndex = 0;
+	protected listIndex = 5;
+	protected brIndex = 4;
 
 	public constructor(
 		tab: TokenBlock,
@@ -136,37 +134,62 @@ export class ListItemBlock extends MutableBlock {
 		super(tab, bullet, space, content, br, list);
 	}
 
-	public get content(): string {
-		return this.str(this.contentIndex);
-	}
-
-	public set content(content: RichTextContent) {
-		this.set(this.contentIndex, createRichTextBlock(content));
-	}
-
+	/**
+	 * Get the sublist indented below this list item.
+	 */
 	public get list(): ListBlock {
 		return this.get(this.listIndex) as ListBlock;
 	}
 
+	/**
+	 * Set the sublist indented below this list item.
+	 */
 	public set list(listContent: ListContent) {
 		this.set(this.listIndex, createListBlock(listContent));
 		this.list.tab = this.tab + 1;
 	}
 
+	/**
+	 * Get the tab level of the list item.
+	 */
 	public get tab(): number {
 		return this.get<TokenBlock>(this.tabIndex).toNumber() ?? 0;
 	}
 
+	/**
+	 * Set the tab level of the list item.
+	 */
 	public set tab(tab: number) {
 		this.set(this.tabIndex, createTokenBlock(Token.createTab(tab)));
 		if (this.list) this.list.tab++;
 	}
 
+	/**
+	 * A fluent setter for the sublist
+	 * @param listContent
+	 * @returns The list item block
+	 *
+	 * @example
+	 * md.list([
+	 * 	md.li("item 1"),
+	 * 	md.li("item 2")
+	 *    .sublist([
+	 * 		md.li("item 2.1"),
+	 * 		md.li("item 2.2"),
+	 * 		md.checkbox("item 2.3")
+	 *   ])
+	 * ])
+	 */
 	public sublist(listContent: ListContent): this {
 		this.list = listContent;
 		return this;
 	}
 
+	/**
+	 * A fluent setter for the tab level
+	 * @param tab
+	 * @returns The list item block
+	 */
 	public atTab(tab: number): this {
 		this.tab = tab;
 		return this;
@@ -180,8 +203,9 @@ export class ListItemBlock extends MutableBlock {
  * - [ ] item 1 <-- This is a checkbox list item.
  */
 export class CheckboxListItemBlock extends ListItemBlock {
-	public override contentIndex = 4;
-	public override listIndex = 6;
+	protected override contentIndex = 4;
+	protected override listIndex = 6;
+	protected override brIndex = 4;
 
 	public constructor(
 		tab: TokenBlock,
@@ -202,9 +226,10 @@ export class CheckboxListItemBlock extends ListItemBlock {
  * 1. item 1 <-- This is a numbered list item.
  */
 export class NumberedListItemBlock extends ListItemBlock {
-	public override contentIndex = 4;
-	public override listIndex = 6;
-	public numberIndex = 1;
+	protected override contentIndex = 4;
+	protected override listIndex = 6;
+	protected numberIndex = 1;
+	protected override brIndex = 4;
 
 	public constructor(
 		tab: TokenBlock,
@@ -246,12 +271,12 @@ export function createListBlock(content: ListContent): ListBlock {
  * @param content The numbered list content.
  * @returns A numbered list block.
  */
-export function createNumberedList(
+export function createNumberedListBlock(
 	content: NumberedListContent
 ): NumberedListBlock {
 	if (Array.isArray(content)) {
 		return new NumberedListBlock(
-			...content.map((item) => createNumberedListItem(item))
+			...content.map((item) => createNumberedListItemBlock(item))
 		);
 	} else if (isStatement(content)) {
 		return spawnBlock(content) as NumberedListBlock;
@@ -278,7 +303,7 @@ export function createListItemBlock(content: ListItemContent): ListItemBlock {
  * @param checked Whether the checkbox is checked
  * @returns A checkbox list item block
  */
-export function createCheckbox(
+export function createCheckboxBlock(
 	content: CheckboxListItemContent,
 	checked = false
 ) {
@@ -294,7 +319,7 @@ export function createCheckbox(
  * @param index The index of the numbered list item
  * @returns A numbered list item block
  */
-export function createNumberedListItem(
+export function createNumberedListItemBlock(
 	content: NumberedListItemContent,
 	index = 1
 ) {

@@ -4,6 +4,7 @@ import { MutableBlock } from "./MutableBlock";
 import { TokenBlock, createTokenBlock } from "./TokenBlock";
 import { MetadataItemStatement } from "src/parsers/statements/MetadataStatement";
 import { spawnBlock, spawnFromContent } from "./BlockFactory";
+import { Token } from "src/tokens/Token";
 
 export type MetadataItemContent = MetadataItemBlock | [string, string] | string;
 
@@ -15,6 +16,20 @@ export class MetadataBlock extends MutableBlock {
 		super(...blocks);
 		this.br = blocks.pop() as TokenBlock;
 		this.children = blocks as MetadataItemBlock[];
+	}
+
+	/**
+	 * Get the number of line breaks at the end of the block.
+	 */
+	public get bottomMargin(): number {
+		return this.br.toNumber() ?? 0;
+	}
+
+	/**
+	 * Set the number of line breaks at the end of the block.
+	 */
+	public set bottomMargin(margin: number) {
+		this.br = createTokenBlock(Token.createBr(margin));
 	}
 
 	/**
@@ -163,7 +178,7 @@ export class MetadataItemBlock extends Block {
 	 * @returns This MetadataItemBlock.
 	 */
 	public removeFromParent(): this {
-		if (this.parent instanceof MetadataBlock) {
+		if (this.parent instanceof MutableBlock) {
 			this.parent.remove(this);
 		}
 		return this;

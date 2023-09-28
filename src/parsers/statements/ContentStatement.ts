@@ -40,8 +40,8 @@ export class ContentStatement extends Statement {
 	 */
 	public static create(content: string, margin = 0): ContentStatement {
 		return new ContentStatement([
-			ParagraphStatement.create(content),
-			margin > 0 ? Token.createBr(margin) : undefined,
+			ParagraphStatement.create(content), // paragraph has a br at the end
+			margin > 1 ? Token.createBr(margin - 1) : undefined,
 		]);
 	}
 }

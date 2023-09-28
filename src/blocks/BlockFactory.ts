@@ -32,6 +32,9 @@ import {
 	LatexBlock,
 } from "./CodeBlock";
 import { MetadataItemBlock } from "./MetadataBlock";
+import { HeadingBlock } from "./HeadingBlock";
+import { LedeBlock } from "./LedeBlock";
+import { ParagraphBlock } from "./ParagraphBlock";
 
 export class BlockFactory {
 	public map = new Map<string, typeof Block>([
@@ -42,8 +45,11 @@ export class BlockFactory {
 		["CodeMetadataStatement", CodeMetadataBlock],
 		["CodeMetadataItemStatement", CodeMetadataItemBlock],
 		["CodeSourceStatement", CodeSourceBlock],
+		["ContentStatement", LedeBlock],
+		["ParagraphStatement", ParagraphBlock],
 		["PlainTextStatement", PlainTextBlock],
 		["RichTextStatement", RichTextBlock],
+		["HeadingStatement", HeadingBlock],
 		["InlineCodeStatement", InlineCodeBlock],
 		["ItalicStatement", ItalicBlock],
 		["LatexStatement", LatexBlock],
