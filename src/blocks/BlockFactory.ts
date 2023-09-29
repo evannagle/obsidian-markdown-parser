@@ -46,6 +46,8 @@ import {
 	FrontmatterItemBlock,
 	FrontmatterListBlock,
 } from "./FrontmatterBlock";
+import { HtmlBlock } from "./HtmlBlock";
+import { TableCellBlock } from "./TableBlock";
 
 export class BlockFactory {
 	public map = new Map<string, typeof Block>([
@@ -68,6 +70,7 @@ export class BlockFactory {
 		["PlainTextStatement", PlainTextBlock],
 		["RichTextStatement", RichTextBlock],
 		["HeadingStatement", HeadingBlock],
+		["HtmlStatement", HtmlBlock],
 		["ImageLinkStatement", ImageLinkBlock],
 		["InlineCodeStatement", InlineCodeBlock],
 		["InternalLinkStatement", InternalLinkBlock],
@@ -81,6 +84,7 @@ export class BlockFactory {
 		["MetadataItemStatement", MetadataItemBlock],
 		["NumberedListItemStatement", NumberedListItemBlock],
 		["QuoteStatement", QuoteBlock],
+		["TableCellStatement", TableCellBlock],
 		["TagStatement", TagBlock],
 	]);
 

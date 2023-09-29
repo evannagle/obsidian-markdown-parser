@@ -29,6 +29,7 @@ import {
 } from "./FrontmatterBlock";
 import { HeadingBlock, createHeadingBlock } from "./HeadingBlock";
 import { HrBlock, createHrBlock } from "./HrBlock";
+import { HtmlBlock, createHtmlBlock } from "./HtmlBlock";
 import { InlineCodeBlock, createInlineCodeBlock } from "./InlineCodeBlock";
 import { LedeBlock, createLedeBlock } from "./LedeBlock";
 import {
@@ -56,12 +57,21 @@ import { PlainTextBlock, createPlainTextBlock } from "./PlainTextBlock";
 import { QuoteBlock, createQuoteBlock } from "./QuoteBlock";
 import { RichTextBlock, createRichTextBlock } from "./RichTextBlock";
 import { SectionBlock, createSectionBlock } from "./SectionBlock";
+import {
+	TableBlock,
+	TableCellBlock,
+	TableRowBlock,
+	createTableBlock,
+	createTableCellBlock,
+	createTableRowBlock,
+} from "./TableBlock";
 import { TagBlock, createTagBlock } from "./TagBlock";
 import { TokenBlock, createTokenBlock } from "./TokenBlock";
 
 export class MarkdownClassReference {
 	public bold = BoldBlock;
 	public bookmark = BookmarkBlock;
+	public cell = TableCellBlock;
 	public checkbox = CheckboxListItemBlock;
 	public code = CodeBlock;
 	public codeMetadata = CodeMetadataBlock;
@@ -72,6 +82,7 @@ export class MarkdownClassReference {
 	public frontmatterListItem = FrontMatterListItemBlock;
 	public heading = HeadingBlock;
 	public hr = HrBlock;
+	public html = HtmlBlock;
 	public i = ItalicBlock;
 	public image = ImageLinkBlock;
 	public inlineCode = InlineCodeBlock;
@@ -86,8 +97,10 @@ export class MarkdownClassReference {
 	public p = ParagraphBlock;
 	public quote = QuoteBlock;
 	public rich = RichTextBlock;
+	public row = TableRowBlock;
 	public section = SectionBlock;
 	public strike = StrikethroughBlock;
+	public table = TableBlock;
 	public tag = TagBlock;
 	public text = PlainTextBlock;
 	public token = TokenBlock;
@@ -98,6 +111,7 @@ export class MarkdownGenerator {
 	public a = new MarkdownClassReference();
 	public bold = createBoldBlock;
 	public bookmark = createBookmarkBlock;
+	public cell = createTableCellBlock;
 	public checkbox = createCheckboxBlock;
 	public code = createCodeBlock;
 	public codeMetadata = createCodeMetadataBlock;
@@ -107,6 +121,7 @@ export class MarkdownGenerator {
 	public frontmatterListItem = createFrontmatterListItemBlock;
 	public heading = createHeadingBlock;
 	public hr = createHrBlock;
+	public html = createHtmlBlock;
 	public highlight = createHighlightBlock;
 	public i = createItalicBlock;
 	public image = createImageLinkBlock;
@@ -121,8 +136,10 @@ export class MarkdownGenerator {
 	public p = createParagraphBlock;
 	public quote = createQuoteBlock;
 	public rich = createRichTextBlock;
+	public row = createTableRowBlock;
 	public section = createSectionBlock;
 	public strike = createStrikethroughBlock;
+	public table = createTableBlock;
 	public tag = createTagBlock;
 	public text = createPlainTextBlock;
 	public token = createTokenBlock;

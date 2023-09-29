@@ -72,7 +72,7 @@ export class TableRowStatement extends Statement {
 			cells.map((cell, index) =>
 				TableCellStatement.create(cell, index === cells.length - 1)
 			),
-			Token.create(TokenType.BR)
+			Token.createBr()
 		);
 	}
 }
@@ -108,6 +108,16 @@ export class TableCellStatement extends Statement {
 	}
 
 	/**
+	 * Pads the cell value with spaces.
+	 * @param cell The cell value to pad.
+	 * @returns The padded cell value.
+	 */
+	static pad(cell: string): string {
+		const cellPad = " ".repeat(1);
+		return cellPad + cell.trim() + cellPad;
+	}
+
+	/**
 	 * Creates a new table cell statement.
 	 * @param content The content of the cell.
 	 * @param lastCellOnRow Whether this is the last cell on the row.
@@ -119,7 +129,7 @@ export class TableCellStatement extends Statement {
 	): TableCellStatement {
 		return new TableCellStatement(
 			Token.create(TokenType.PIPE),
-			RichTextStatement.create(content),
+			RichTextStatement.create(this.pad(content)),
 			lastCellOnRow ? Token.create(TokenType.PIPE) : undefined
 		);
 	}

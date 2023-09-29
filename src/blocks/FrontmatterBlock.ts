@@ -69,6 +69,12 @@ export class FrontmatterBlock extends MetadataBlock<FrontmatterItemBlock> {
 		return this;
 	}
 
+	/**
+	 * Sets the value of a frontmatter item.
+	 * @param key The key of the frontmatter item.
+	 * @param value The value of the frontmatter item.
+	 * @returnso This frontmatter block
+	 */
 	public override setKey(key: string, value: string | string[]): this {
 		const newItem = createFrontmatterItemBlock(key, value);
 		const item = this.item(key) as FrontmatterItemBlock;
@@ -78,6 +84,23 @@ export class FrontmatterBlock extends MetadataBlock<FrontmatterItemBlock> {
 			this.add(newItem);
 		}
 
+		return this;
+	}
+
+	/**
+	 * Sets many metadata items.
+	 * @param metadata The metadata items to set.
+	 *
+	 * @example
+	 * frontmatter.setKeys({
+	 *    "key1": "value1",
+	 *    "key2": [ "value2.a", "value2.b" ],
+	 * });
+	 */
+	public override setKeys(keys: Record<string, string | string[]>): this {
+		Object.entries(keys).forEach(([key, value]) => {
+			this.setKey(key, value);
+		});
 		return this;
 	}
 
@@ -146,15 +169,23 @@ export class FrontmatterItemBlock extends MetadataItemBlock {
 		}
 	}
 
+	protected setValueAsArray(value: string[]): void {
+		this.set(this.spaceIndex, createTokenBlock(Token.createBr(1)));
+		this.set(this.valueIndex, createFrontmatterListBlock(value));
+		this.set(this.brIndex, createTokenBlock(""));
+	}
+
+	protected setValueAsString(value: string): void {
+		this.set(this.spaceIndex, createTokenBlock(Token.createSpace(1)));
+		this.set(this.valueIndex, createTokenBlock(value));
+		this.set(this.brIndex, createTokenBlock(Token.createBr(1)));
+	}
+
 	public override set value(value: string | string[]) {
 		if (Array.isArray(value)) {
-			this.set(this.spaceIndex, createTokenBlock(Token.createBr(1)));
-			this.set(this.valueIndex, createFrontmatterListBlock(value));
-			this.set(this.brIndex, createTokenBlock(""));
+			this.setValueAsArray(value);
 		} else {
-			this.set(this.spaceIndex, createTokenBlock(Token.createSpace(1)));
-			this.set(this.valueIndex, createTokenBlock(value));
-			this.set(this.brIndex, createTokenBlock(Token.createBr(1)));
+			this.setValueAsString(value);
 		}
 	}
 }

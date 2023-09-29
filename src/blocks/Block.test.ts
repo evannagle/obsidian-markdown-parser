@@ -11,7 +11,6 @@ import { nl } from "src/scanners/ScannerBase";
 import { md } from "./MarkdownGenerator";
 import { MutableBlock } from "./MutableBlock";
 import { parse } from "src/parsers/Parser";
-import { printStatement } from "src/visitors/DebugVisitor";
 import { spawnBlock } from "./BlockFactory";
 import { FrontmatterBlock } from "./FrontmatterBlock";
 
@@ -801,6 +800,155 @@ describe("Block", () => {
 					"---"
 				)
 			);
+		});
+	});
+
+	describe("html", () => {
+		it("creates an html block", () => {
+			const html = md.html("<div>foo</div>");
+			expect(html.toString()).toBe("<div>foo</div>");
+		});
+	});
+
+	describe("table", () => {
+		it("creates a table cell", () => {
+			const cell = md.cell("foo");
+			expect(cell.toString()).toBe("| foo ");
+		});
+
+		it("creates a last table cell", () => {
+			const cell = md.cell("foo").atEnd();
+			expect(cell.toString()).toBe("| foo |");
+		});
+
+		it("can update a table cell", () => {
+			const cell = md.cell("foo");
+			cell.content = "bar";
+			expect(cell.toString()).toBe("| bar ");
+		});
+
+		it("can create a table row", () => {
+			const row = md.row(["foo", "bar"]);
+			expect(row.toString()).toBe("| foo | bar |\n");
+		});
+
+		it("updates table cells in a row", () => {
+			const row = md.row(["foo", "bar"]);
+			row.cell(0).content = "baz";
+			expect(row.toString()).toBe("| baz | bar |\n");
+		});
+
+		it("adds more cells to a row", () => {
+			const row = md.row(["foo", "bar"]);
+			row.add(md.cell("baz"));
+			expect(row.toString()).toBe("| foo | bar | baz |\n");
+		});
+
+		it("deletes a cell from a row", () => {
+			const row = md.row(["foo", "bar"]);
+			row.remove(row.cell(0));
+			expect(row.toString()).toBe("| bar |\n");
+		});
+
+		it("creates a table", () => {
+			const table = md.table([
+				md.row(["foo", "bar"]),
+				md.row(["baz", "car"]),
+			]);
+
+			expect(table.toString()).toBe(
+				nl("| foo | bar |", "| baz | car |", "")
+			);
+		});
+
+		it("inserts an hr row", () => {
+			const table = md.table([
+				md.row(["foo", "bar"]),
+				md.row(["baz", "car"]),
+			]);
+
+			table.addSpacer();
+
+			expect(table.toString()).toBe(
+				nl("| foo | bar |", "| --- | --- |", "| baz | car |", "")
+			);
+		});
+
+		it("returns true if a row is an hr row", () => {
+			const table = md.table([
+				md.row(["foo", "bar"]),
+				md.row(["baz", "car"]),
+			]);
+
+			table.addSpacer();
+
+			expect(table.row(1).isSpacer()).toBe(true);
+		});
+
+		it("returns false if a row is an hr row", () => {
+			const table = md.table([
+				md.row(["foo", "bar"]),
+				md.row(["baz", "car"]),
+			]);
+
+			table.addSpacer();
+
+			expect(table.row(0).isSpacer()).toBe(false);
+		});
+
+		it("gets a column", () => {
+			const table = md
+				.table([md.row(["foo", "bar"]), md.row(["baz", "car"])])
+				.addSpacer();
+
+			const col = table.column(1);
+
+			expect(col).toEqual(["bar", "car"]);
+		});
+
+		it("gets a column by name", () => {
+			const table = md
+				.table([md.row(["foo", "bar"]), md.row(["baz", "car"])])
+				.addSpacer();
+
+			const col = table.column("bar");
+
+			expect(col).toEqual(["bar", "car"]);
+		});
+
+		it("converts a table into a dictionary", () => {
+			const table = md
+				.table([
+					md.row(["foo", "bar"]),
+					md.row(["baz", "car"]),
+					md.row(["qux", "quux"]),
+				])
+				.addSpacer();
+
+			const dict = table.toDictionary();
+
+			expect(dict).toEqual({
+				foo: ["baz", "qux"],
+				bar: ["car", "quux"],
+			});
+		});
+
+		it("converts a table to a two dimensional array", () => {
+			const table = md
+				.table([
+					md.row(["foo", "bar"]),
+					md.row(["baz", "car"]),
+					md.row(["qux", "quux"]),
+				])
+				.addSpacer();
+
+			const array = table.toArray();
+
+			expect(array).toEqual([
+				["foo", "bar"],
+				["baz", "car"],
+				["qux", "quux"],
+			]);
 		});
 	});
 });
