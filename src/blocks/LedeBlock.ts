@@ -1,27 +1,12 @@
-import { ContentStatement } from "src/parsers/statements/ContentStatement";
+import { MutableBlock } from "./MutableBlock";
 import { spawnFromContentAndCreate } from "./BlockFactory";
-import { LineBlock } from "./LineBlock";
-import { createParagraphBlock } from "./ParagraphBlock";
+import { ContentStatement } from "src/parsers/statements/ContentStatement";
 
-export type LedeContent = LedeBlock | ContentStatement | string;
+// export type LedeContent = LedeBlock | ContentStatement | string;
 
-export class LedeBlock extends LineBlock {
-	protected paragraphIndex = 0;
-	protected brIndex = 1;
+export class LedeBlock extends MutableBlock {}
 
-	public get content(): string {
-		return this.str(this.paragraphIndex);
-	}
-
-	public set content(content: string) {
-		this.set(this.paragraphIndex, createParagraphBlock(content));
-	}
-}
-
-export function createLedeBlock(
-	content: LedeContent,
-	bottomMargin = 2
-): LedeBlock {
+export function createLedeBlock(content: string, bottomMargin = 2): LedeBlock {
 	return spawnFromContentAndCreate<LedeBlock, ContentStatement>(
 		content,
 		(c) => {
@@ -29,3 +14,13 @@ export function createLedeBlock(
 		}
 	);
 }
+
+// export function createLedeBlock(blocks: string | Block[]) {
+// 	if (typeof blocks === "string") {
+// 		blocks = blocks.trimEnd() + "\nxx\n";
+// 		return spawnBlock(ContentStatement.create(blocks));
+// 		// return spawnFromContent<LedeBlock>(blocks, ContentStatement);
+// 	}
+
+// 	return new LedeBlock(...blocks);
+// }

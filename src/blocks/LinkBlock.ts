@@ -14,6 +14,7 @@ import {
 	LinkStatement,
 } from "src/parsers/statements/LinkStatement";
 import { spawnFromContent, spawnFromContentAndCreate } from "./BlockFactory";
+import { UndefinedBlock } from "./UndefinedBlock";
 
 export type InternalLinkBlockContent = LinkBlock | LinkStatement | string;
 export type ExternalLinkBlockContent =
@@ -34,7 +35,11 @@ export class LinkBlock extends Block {}
  * This is a [[link]] to another file.
  */
 export class InternalLinkBlock extends LinkBlock {
-	protected static override allowedChildren = [TokenBlock, PlainTextBlock];
+	protected static override allowedChildren = [
+		TokenBlock,
+		PlainTextBlock,
+		UndefinedBlock,
+	];
 
 	protected fileIndex = 1;
 	protected pipeIndex = 2;

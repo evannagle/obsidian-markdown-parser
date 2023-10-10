@@ -124,7 +124,7 @@ export class FrontmatterBlock extends MetadataBlock<FrontmatterItemBlock> {
 	 * //   date: "2021-01-01",
 	 * // }
 	 */
-	public override toDict(): Record<string, string | string[]> {
+	public override toDictionary(): Record<string, string | string[]> {
 		const dict: Record<string, string | string[]> = {};
 		this.children.forEach((item) => {
 			dict[item.key] = item.value;

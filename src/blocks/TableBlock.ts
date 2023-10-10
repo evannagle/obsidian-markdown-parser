@@ -15,6 +15,7 @@ import { TokenType } from "src/tokens/TokenType";
 import { Token } from "src/tokens/Token";
 import { isStatement } from "src/parsers/statements/Statement";
 import { MutableBlock } from "./MutableBlock";
+import { UndefinedBlock } from "./UndefinedBlock";
 
 export type TableCellContent = TableCellBlock | TableCellStatement | string;
 
@@ -30,7 +31,11 @@ export type TableContent =
 	| TableCellContent[][];
 
 export class TableCellBlock extends Block {
-	protected static allowedChildren = [TokenBlock, RichTextBlock];
+	protected static allowedChildren = [
+		TokenBlock,
+		RichTextBlock,
+		UndefinedBlock,
+	];
 	contentIndex = 1;
 	endBrIndex = 2;
 
@@ -47,7 +52,9 @@ export class TableCellBlock extends Block {
 	public set content(value: RichTextContent) {
 		this.set(
 			this.contentIndex,
-			createRichTextBlock(TableCellStatement.pad(value.toString()))
+			createRichTextBlock(
+				TableCellStatement.pad((value ?? "").toString())
+			)
 		);
 	}
 
@@ -69,26 +76,31 @@ export class TableCellBlock extends Block {
 
 export class TableRowBlock extends MutableBlock {
 	protected static allowedChildren = [TableCellBlock, TokenBlock];
-	protected brToken: TokenBlock;
+	public override children: TableCellBlock[];
+	public br: TokenBlock;
 
 	constructor(...blocks: Block[]) {
 		super(...blocks.slice(0, -1));
-		this.brToken = blocks.pop() as TokenBlock;
+		this.br = blocks.pop() as TokenBlock;
+		this.children = blocks as TableCellBlock[];
 	}
 
 	/**
-	 * Gets the cell at the given index.
-	 * @param index The index of the cell to return.
+	 * Get a cell in the row.
+	 * @param i The index of the cell
 	 * @returns The cell at the given index.
 	 */
-	public cell(index: number): TableCellBlock {
-		return this.children[index]!;
+	public cell(i: number): TableCellBlock {
+		return this.children[i] as TableCellBlock;
 	}
 
 	/**
-	 * All children in a table row are table cells.
+	 * Get the cells and the BR block.
+	 * @returns the child cells as well as the EOL line break.
 	 */
-	protected override children: TableCellBlock[];
+	public override getParts(): Block[] {
+		return [...this.children, this.br];
+	}
 
 	/**
 	 * Returns true if the row is a header row.
@@ -121,19 +133,19 @@ export class TableRowBlock extends MutableBlock {
 	}
 
 	/**
-	 * Updates the cells to ensure that the law cell in the row
-	 * Includes a suffix pipe and line break.
+	 * Get the last cell in the row.
+	 * @returns The last cell block.
 	 */
-	public onMutation(): void {
-		this.rebar();
+	public lastCell(): TableCellBlock {
+		return this.children[this.children.length - 1] as TableCellBlock;
 	}
 
 	/**
-	 * Adds a suffix pipe and line break to the last cell in the row.
+	 * Ensures the last child in the row has an extra bar pipe.
 	 */
-	protected rebar() {
+	public override onMutation(): void {
 		this.children.forEach((cell) => cell.atEnd(false));
-		this.children[this.children.length - 1]!.atEnd();
+		this.lastCell().atEnd(true);
 	}
 
 	/**
@@ -142,25 +154,6 @@ export class TableRowBlock extends MutableBlock {
 	 */
 	public toArray(): string[] {
 		return this.children.map((cell) => cell.content);
-	}
-
-	/**
-	 *
-	 * @returns The row as a string.
-	 *
-	 * @example
-	 * ```
-	 * const block = TableRowBlock.create([
-	 *     "foo",
-	 *     "bar",
-	 *     "a",
-	 * ]);
-	 *
-	 * expect(block.toString()).toEqual("| foo | bar | a |");
-	 * ```
-	 */
-	public override toString() {
-		return super.toString() + this.brToken.toString();
 	}
 }
 
@@ -189,7 +182,7 @@ export class TableBlock extends MutableBlock {
 		}
 
 		const spacerRow = createTableRowBlock(
-			this.get(0)
+			this.get<TableRowBlock>(0)
 				.getChildren()
 				.map((cell: TableCellBlock) => "-".repeat(cell.content.length))
 		);

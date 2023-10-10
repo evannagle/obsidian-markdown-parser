@@ -158,12 +158,17 @@ export class Scanner extends ScannerBase {
 	 * @returns
 	 */
 	protected scanDashAtStartOfLine(): void {
-		if (this.nextIs(" [ ]", " [x]")) {
-			this.moveCursor(4);
-			const x = this.getQueuedChars();
-			this.add(TokenType.CHECKBOX, x[3] === "x");
-		} else if (this.nextIs(SPACE)) {
-			this.add(TokenType.BULLET);
+		if (this.nextIs(SPACE)) {
+			this.checkout();
+			this.next().nextWhile(...SPACE);
+			if (this.nextIs("[ ]", "[x]")) {
+				this.moveCursor(3);
+				const x = this.getQueuedChars();
+				this.add(TokenType.CHECKBOX, x.slice(-2)[0] === "x");
+			} else {
+				this.revertCheckout();
+				this.add(TokenType.BULLET);
+			}
 		} else if (this.nextIs("--")) {
 			this.moveCursor(2);
 			if (this.nextIs(EOL)) {
@@ -577,7 +582,10 @@ export class Scanner extends ScannerBase {
 		}
 
 		const fullSymbol = this.getQueuedChars();
-		isSymbol = isSymbol && isAlpha(fullSymbol[fullSymbol.length - 1]);
+		const lastSymbol = fullSymbol[fullSymbol.length - 1];
+
+		// not allowing symbols to end in - or _ with this current logic
+		isSymbol = isSymbol && (isAlpha(lastSymbol) || isNumber(lastSymbol));
 
 		if (isSymbol) {
 			const [symbolType, literalValue] =

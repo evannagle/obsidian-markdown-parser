@@ -11,4 +11,6 @@ export class MutableBlock extends Block {
 	public replace = super.replace;
 	public replaceChildAt = super.replaceChildAt;
 	public sort = super.sort;
+	public swap = super.swap;
+	public swapAt = super.swapAt;
 }

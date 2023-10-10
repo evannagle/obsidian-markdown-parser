@@ -11,6 +11,7 @@ import { spawnFromContent, spawnFromContentAndCreate } from "./BlockFactory";
 import { Token } from "src/tokens/Token";
 import { MutableBlock } from "./MutableBlock";
 import { RichContentBlock } from "./RichContentBlock";
+import { UndefinedBlock } from "./UndefinedBlock";
 
 export type ListItemContent = ListItemBlock | ListItemStatement | string;
 export type ListContent =
@@ -47,8 +48,8 @@ export type NumberedListItemContent =
  *
  */
 export class ListBlock extends MutableBlock {
-	public constructor(...children: ListItemBlock[]) {
-		super(...children);
+	public constructor(...blocks: ListItemBlock[]) {
+		super(...blocks);
 	}
 
 	public item(index: number): ListItemBlock {
@@ -111,6 +112,7 @@ export class ListItemBlock extends RichContentBlock {
 		RichTextBlock,
 		ListBlock,
 		NumberedListBlock,
+		UndefinedBlock,
 	];
 	protected static override childCount = 6;
 	protected contentIndex = 3;

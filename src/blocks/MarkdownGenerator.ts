@@ -8,6 +8,7 @@ import {
 	createCodeMetadataBlock,
 	createLatexBlock,
 } from "./CodeBlock";
+import { DocumentBlock, createDocumentBlock } from "./DocumentBlock";
 import {
 	BoldBlock,
 	ItalicBlock,
@@ -52,7 +53,11 @@ import {
 	createNumberedListBlock,
 	createNumberedListItemBlock,
 } from "./ListBlock";
-import { ParagraphBlock, createParagraphBlock } from "./ParagraphBlock";
+import {
+	ParagraphBlock,
+	createBrBlock,
+	createParagraphBlock,
+} from "./ParagraphBlock";
 import { PlainTextBlock, createPlainTextBlock } from "./PlainTextBlock";
 import { QuoteBlock, createQuoteBlock } from "./QuoteBlock";
 import { RichTextBlock, createRichTextBlock } from "./RichTextBlock";
@@ -76,6 +81,7 @@ export class MarkdownClassReference {
 	public code = CodeBlock;
 	public codeMetadata = CodeMetadataBlock;
 	public codeMetadataItem = CodeMetadataItemBlock;
+	public document = DocumentBlock;
 	public frontmatter = FrontmatterBlock;
 	public frontmatterItem = FrontmatterItemBlock;
 	public frontmatterList = FrontmatterListBlock;
@@ -111,10 +117,12 @@ export class MarkdownGenerator {
 	public a = new MarkdownClassReference();
 	public bold = createBoldBlock;
 	public bookmark = createBookmarkBlock;
+	public br = createBrBlock;
 	public cell = createTableCellBlock;
 	public checkbox = createCheckboxBlock;
 	public code = createCodeBlock;
 	public codeMetadata = createCodeMetadataBlock;
+	public document = createDocumentBlock;
 	public frontmatter = createFrontmatterBlock;
 	public frontmatterItem = createFrontmatterItemBlock;
 	public frontmatterList = createFrontmatterListBlock;

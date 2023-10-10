@@ -1,19 +1,24 @@
+export type BlockMatch =
+	| typeof Block
+	| (typeof Block)[]
+	| ((block: Block) => boolean);
+
 export class Block {
 	public parent: Block | undefined = undefined;
 	protected children: Block[] = [];
 	protected static allowedChildren: (typeof Block)[] | undefined = undefined;
 	protected static childCount: number | undefined = undefined;
 
-	constructor(...children: (Block | undefined)[]) {
-		this.add(...(children.filter((c) => c) as Block[]));
+	constructor(...blocks: (Block | undefined)[]) {
+		this.add(...(blocks.filter((c) => c) as Block[]));
 		this.assertChildCount();
 	}
 
 	/**
 	 * @param child The child to add.
 	 */
-	protected add(...children: Block[]): this {
-		children.forEach((child) => {
+	protected add(...blocks: Block[]): this {
+		blocks.forEach((child) => {
 			this.addAt(child, this.children.length);
 		});
 
@@ -77,7 +82,11 @@ export class Block {
 		if (source.childCount !== undefined) {
 			if (this.children.length !== source.childCount) {
 				throw new Error(
-					`Expected ${source.childCount} children, found ${this.children.length} in <${this.constructor.name}>.`
+					`Expected ${source.childCount} children, found ${this.children.length} in <${this.constructor.name}>.\n` +
+						`- Block: ${this.toString()}\n` +
+						`- Children: ${this.children
+							.map((c) => c.toString())
+							.join(", ")}`
 				);
 			}
 		}
@@ -132,8 +141,7 @@ export class Block {
 	 * @returns
 	 */
 	public each(fn: (block: Block) => void | boolean): this {
-		// this.children.forEach(fn);
-		for (const child of this.children) {
+		for (const child of this.getParts()) {
 			if (fn(child) === false) {
 				return this;
 			}
@@ -141,6 +149,59 @@ export class Block {
 		}
 
 		return this;
+	}
+
+	/**
+	 * Returns true if this block matches the given pattern.
+	 * @param match The pattern to match.
+	 * @returns True if this block matches the given pattern, false otherwise.
+	 */
+	public matches(match: BlockMatch): boolean {
+		if (Array.isArray(match)) {
+			return match.some((m) => this.matches(m));
+		} else if (typeof match.prototype === "object") {
+			return this instanceof match;
+		} else if (typeof match === "function") {
+			return (match as any)(this);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find the first child that matches the given pattern.
+	 * @param match The pattern to match.
+	 * @returns The first block that matches the given pattern.
+	 */
+	public find(match: BlockMatch): Block | undefined {
+		let found: Block | undefined = undefined;
+
+		this.each((block: Block) => {
+			if (block.matches(match)) {
+				found = block;
+				return false;
+			}
+			return;
+		});
+
+		return found;
+	}
+
+	/**
+	 * Find all children that match the given pattern.
+	 * @param match The pattern to match.
+	 * @returns All blocks that match the given pattern.
+	 */
+	public findAll(match: BlockMatch): Block[] {
+		const r: Block[] = [];
+
+		this.each((block) => {
+			if (block.matches(match)) {
+				r.push(block);
+			}
+		});
+
+		return r;
 	}
 
 	/**
@@ -166,6 +227,7 @@ export class Block {
 
 		return undefined;
 	}
+
 	/**
 	 * Disown the given block from its parent.
 	 * @param index The index of the child to get.
@@ -255,7 +317,10 @@ export class Block {
 				`Block of type ${this.constructor.name} cannot have children of type ${child.constructor.name}.\n` +
 					`Allowed types: ${source.allowedChildren
 						.map((c) => (c ? c.name : "Undefined"))
-						.join(", ")}\n`
+						.join(", ")}\n` +
+					`- Found type: ${child.constructor.name}\n` +
+					`- Block: ${this.toString()}\n` +
+					`- Child: ${child.toString()}`
 			);
 		}
 
@@ -296,6 +361,14 @@ export class Block {
 		}
 
 		return found[0] as T;
+	}
+
+	/**
+	 * In some cases, our "each" function may include a br block that we're excluding from the child array.
+	 * @returns The items to be includes in the each() method.
+	 */
+	protected getParts(): Block[] {
+		return this.children;
 	}
 
 	/**
@@ -370,6 +443,7 @@ export class Block {
 		this.removeChildAt(index);
 		return this;
 	}
+
 	/**
 	 * Removes the block from its parent.
 	 * @param index The index of the child to remove.
@@ -452,10 +526,46 @@ export class Block {
 	}
 
 	/**
+	 * Swap the position of two blocks.
+	 * @param a Block to swap
+	 * @param b Block to swap
+	 */
+	protected swap(a: Block, b: Block) {
+		const indexA = this.indexOfChild(a);
+		const indexB = this.indexOfChild(b);
+
+		if (indexA < 0) {
+			throw new Error(
+				`Child of type ${a.constructor.name} not found in parent ${this.constructor.name}.`
+			);
+		} else if (indexB < 0) {
+			throw new Error(
+				`Child of type ${b.constructor.name} not found in parent ${this.constructor.name}.`
+			);
+		}
+
+		this.swapAt(indexA, indexB);
+	}
+
+	/**
+	 * Swap the position of two blocks by their indexes.
+	 * @param indexA Index of the first block to swap
+	 * @param indexB Index of the second block to swap
+	 */
+	protected swapAt(indexA: number, indexB: number) {
+		const childA = this.children[indexA]!;
+		const childB = this.children[indexB]!;
+		this.children[indexA] = childB;
+		this.children[indexB] = childA;
+	}
+
+	/**
 	 * Gets the string representation of the block.
 	 * @returns A string representation of the block.
 	 */
 	public toString(): string {
-		return this.children.map((child) => child.toString()).join("");
+		return this.getParts()
+			.map((child) => (child ?? "").toString())
+			.join("");
 	}
 }

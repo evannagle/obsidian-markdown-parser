@@ -247,6 +247,17 @@ describe("Scanner", () => {
 		expectToken(tokens[0], { literal: true });
 	});
 
+	it("scans for a checkbox with extra spaces before the brackets", () => {
+		const tokens = scanTokens("-   [ ] Foo");
+		expectTokenType(tokens[0], TokenType.CHECKBOX);
+	});
+
+	it("scans for a checkbox with extra spaces after the brackets that is checked", () => {
+		const tokens = scanTokens("-   [x] Foo");
+		expectTokenType(tokens[0], TokenType.CHECKBOX);
+		expectToken(tokens[0], { literal: true });
+	});
+
 	it("scans for unchecked checkbox, setting literal to false", () => {
 		const tokens = scanTokens("- [ ] Foo");
 		expectToken(tokens[0], { literal: false });

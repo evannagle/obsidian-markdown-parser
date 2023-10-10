@@ -1,23 +1,42 @@
-import { FrontmatterBlock } from "./FrontmatterBlock";
+import { FrontmatterBlock, FrontmatterItemBlock } from "./FrontmatterBlock";
 import { LedeBlock } from "./LedeBlock";
-import { MutableBlock } from "./MutableBlock";
+import { MetadataItemBlock } from "./MetadataBlock";
 import { SectionBlock } from "./SectionBlock";
+import { MetadataSpan } from "./spans/MetadataSpan";
 
-export class DocumentBlock extends MutableBlock {
+export class DocumentBlock extends SectionBlock {
 	constructor(
 		public frontmatter?: FrontmatterBlock,
 		public lede?: LedeBlock,
 		...sections: SectionBlock[]
 	) {
-		super(frontmatter, lede, ...sections);
-		this.children = sections;
+		// super(frontmatter, lede, ...sections);
+		super(undefined, lede, ...sections);
+		if (frontmatter) {
+			this.children.unshift(frontmatter);
+		}
 	}
 
-	public toString(): string {
-		return (
-			(this.frontmatter?.toString() || "") +
-			(this.lede?.toString() || "") +
-			super.toString()
+	/**
+	 * Finds all metadata items.
+	 * @returns Gdt all metadata items in the current block, across multiple metadata parent blocks.
+	 */
+	public override getMetadata(): MetadataSpan {
+		return new MetadataSpan(
+			this.findAll((b) => {
+				return (
+					b instanceof MetadataItemBlock ||
+					b instanceof FrontmatterItemBlock
+				);
+			}) as MetadataItemBlock[]
 		);
 	}
+}
+
+export function createDocumentBlock(
+	frontmatter?: FrontmatterBlock,
+	lede?: LedeBlock,
+	...sections: SectionBlock[]
+): DocumentBlock {
+	return new DocumentBlock(frontmatter, lede, ...sections);
 }

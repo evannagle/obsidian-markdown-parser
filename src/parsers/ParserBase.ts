@@ -1,7 +1,7 @@
 import { scanTokens } from "src/scanners/Scanner";
 import { Token } from "../tokens/Token";
 import { TokenType } from "../tokens/TokenType";
-import { Statement } from "./statements";
+import { Statement } from "./statements/Statement";
 
 export const EOL_TOKENS = [TokenType.BR, TokenType.EOF];
 export const SPACE_TOKENS = [TokenType.SPACE, TokenType.TAB];

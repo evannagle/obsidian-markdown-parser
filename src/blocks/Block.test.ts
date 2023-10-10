@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { Block } from "./Block";
 import { ItalicBlock, StrikethroughBlock } from "./FormattingBlock";
 import { BookmarkBlock } from "./BookmarkBlock";
@@ -17,8 +16,8 @@ import { FrontmatterBlock } from "./FrontmatterBlock";
 class TestContentBlock extends MutableBlock {
 	public static override allowedChildren = [];
 
-	constructor(public content = "", ...children: Block[]) {
-		super(...children);
+	constructor(public content = "", ...blocks: Block[]) {
+		super(...blocks);
 	}
 
 	public toString() {

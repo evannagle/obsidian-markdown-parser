@@ -5,6 +5,7 @@ import { TokenBlock, createTokenBlock } from "./TokenBlock";
 import { MetadataItemStatement } from "src/parsers/statements/MetadataStatement";
 import { spawnBlock, spawnFromContent } from "./BlockFactory";
 import { Token } from "src/tokens/Token";
+import { UndefinedBlock } from "./UndefinedBlock";
 
 export type MetadataItemContent = MetadataItemBlock | [string, string] | string;
 
@@ -14,7 +15,12 @@ export class MetadataBlock<T extends MetadataItemBlock> extends MutableBlock {
 
 	constructor(...blocks: Block[]) {
 		super(...blocks);
-		this.br = blocks.pop() as TokenBlock;
+
+		const lastBlock = blocks[blocks.length - 1];
+		if (lastBlock instanceof TokenBlock) {
+			this.br = blocks.pop() as TokenBlock;
+		}
+
 		this.children = blocks as MetadataItemBlock[];
 	}
 
@@ -40,6 +46,18 @@ export class MetadataBlock<T extends MetadataItemBlock> extends MutableBlock {
 	 */
 	protected createItem(key: string, value: string): T {
 		return createMetadataItemBlock([key, value]) as T;
+	}
+
+	/**
+	 * Get all metadata items and the end BR.
+	 * @returns All metadata items and the end BR.
+	 */
+	public override getParts(): Block[] {
+		if (this.br) {
+			return [...this.children, this.br];
+		} else {
+			return this.children;
+		}
 	}
 
 	// /**
@@ -90,6 +108,19 @@ export class MetadataBlock<T extends MetadataItemBlock> extends MutableBlock {
 	}
 
 	/**
+	 * Remove the given child from this MetadataBlock.
+	 * @param child The child to remove.
+	 * @returns This MetadataBlock.
+	 */
+	public remove = (child: Block) => {
+		super.remove(child);
+		if (this.children.length === 0) {
+			this.br = new UndefinedBlock();
+		}
+		return this;
+	};
+
+	/**
 	 * Set the metadata item with the given key to the given value.
 	 * @param key The key of the metadata item.
 	 * @param value The value of the metadata item.
@@ -134,24 +165,12 @@ export class MetadataBlock<T extends MetadataItemBlock> extends MutableBlock {
 	 * Get the metadata items as a dictionary.
 	 * @returns A dictionary of all metadata items.
 	 */
-	public toDict(): Record<string, string | string[]> {
+	public toDictionary(): Record<string, string | string[]> {
 		const dict: Record<string, string> = {};
 		this.children.forEach((item) => {
 			dict[item.key] = item.value;
 		});
 		return dict;
-	}
-
-	/**
-	 * Returns the string representation of this MetadataBlock.
-	 * We need to insert the end BR back into the string.
-	 * @returns The string representation of this MetadataBlock.
-	 */
-	public toString(): string {
-		return (
-			this.children.map((item) => item.toString()).join("") +
-			this.br.toString()
-		);
 	}
 }
 
@@ -210,6 +229,8 @@ export class MetadataItemBlock extends Block {
 		this.set(this.valueIndex, createTokenBlock(value));
 	}
 }
+
+export class MetadataListBlock extends MetadataBlock<MetadataItemBlock> {}
 
 /**
  * Create a new metadata item block.

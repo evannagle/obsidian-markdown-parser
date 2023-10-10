@@ -1,5 +1,3 @@
-import { ParagraphStatement } from "src/parsers/statements/ParagraphStatement";
-import { spawnFromContent } from "./BlockFactory";
 import {
 	RichTextBlock,
 	RichTextContent,
@@ -8,8 +6,7 @@ import {
 import { TokenBlock, createTokenBlock } from "./TokenBlock";
 import { MutableBlock } from "./MutableBlock";
 import { Token } from "src/tokens/Token";
-
-export type ParagraphContent = ParagraphBlock | ParagraphStatement | string;
+import { Block } from "./Block";
 
 export class ParagraphBlock extends MutableBlock {
 	public static override allowedChildren = [RichTextBlock, TokenBlock];
@@ -40,13 +37,10 @@ export class ParagraphBlock extends MutableBlock {
 	}
 }
 
-/**
- * Creates a paragraph block
- * @param content The paragraph content
- * @returns A paragraph block
- */
-export function createParagraphBlock(
-	content: ParagraphContent
-): ParagraphBlock {
-	return spawnFromContent<ParagraphBlock>(content, ParagraphStatement);
+export function createParagraphBlock(...blocks: Block[]) {
+	return new ParagraphBlock(createRichTextBlock(blocks));
+}
+
+export function createBrBlock(n = 1) {
+	return createTokenBlock(Token.createBr(n));
 }

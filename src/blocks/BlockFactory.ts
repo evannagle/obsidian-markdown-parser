@@ -22,6 +22,7 @@ import {
 	CheckboxListItemBlock,
 	ListBlock,
 	ListItemBlock,
+	NumberedListBlock,
 	NumberedListItemBlock,
 } from "./ListBlock";
 import {
@@ -31,7 +32,11 @@ import {
 	CodeSourceBlock,
 	LatexBlock,
 } from "./CodeBlock";
-import { MetadataItemBlock } from "./MetadataBlock";
+import {
+	MetadataBlock,
+	MetadataItemBlock,
+	MetadataListBlock,
+} from "./MetadataBlock";
 import { HeadingBlock } from "./HeadingBlock";
 import { LedeBlock } from "./LedeBlock";
 import { ParagraphBlock } from "./ParagraphBlock";
@@ -48,6 +53,10 @@ import {
 } from "./FrontmatterBlock";
 import { HtmlBlock } from "./HtmlBlock";
 import { TableCellBlock } from "./TableBlock";
+import { DocumentBlock } from "./DocumentBlock";
+import { SectionBlock } from "./SectionBlock";
+import { parse } from "src/parsers/Parser";
+import { UndefinedBlock } from "./UndefinedBlock";
 
 export class BlockFactory {
 	public map = new Map<string, typeof Block>([
@@ -59,6 +68,7 @@ export class BlockFactory {
 		["CodeMetadataItemStatement", CodeMetadataItemBlock],
 		["CodeSourceStatement", CodeSourceBlock],
 		["ContentStatement", LedeBlock],
+		["DocumentStatement", DocumentBlock],
 		["ExternalLinkStatement", ExternalLinkBlock],
 		["FrontmatterStatement", FrontmatterBlock],
 		["FrontmatterScalarAttrStatement", FrontmatterItemBlock],
@@ -76,21 +86,24 @@ export class BlockFactory {
 		["InternalLinkStatement", InternalLinkBlock],
 		["ItalicStatement", ItalicBlock],
 		["LatexStatement", LatexBlock],
+		["NumberedListStatement", NumberedListBlock],
 		["StrikethroughStatement", StrikethroughBlock],
 		["HighlightStatement", HighlightBlock],
 		["HrStatement", HrBlock],
 		["ListStatement", ListBlock],
 		["ListItemStatement", ListItemBlock],
+		["MetadataListStatement", MetadataListBlock],
 		["MetadataItemStatement", MetadataItemBlock],
 		["NumberedListItemStatement", NumberedListItemBlock],
 		["QuoteStatement", QuoteBlock],
+		["SectionStatement", SectionBlock],
 		["TableCellStatement", TableCellBlock],
 		["TagStatement", TagBlock],
 	]);
 
-	public spawnFromStatementPart(statement: StatementPart): Block {
+	public spawnFromStatementPart(statement: StatementPart): Block | undefined {
 		if (!statement) {
-			return createTokenBlock("");
+			return new UndefinedBlock();
 		} else if (!isStatement(statement)) {
 			return createTokenBlock(statement.lexeme, statement.literal);
 		}
@@ -115,9 +128,15 @@ export class BlockFactory {
 }
 
 export function spawnBlock(statement: StatementPart): Block {
-	return new BlockFactory().spawnFromStatementPart(statement);
+	return new BlockFactory().spawnFromStatementPart(statement) ?? new Block();
 }
 
+/**
+ * Convert a black, statement, or string to a block.
+ * @param content The content of the block.
+ * @param statementType The statement type to create if the content is a string.
+ * @returns The block.
+ */
 export function spawnFromContent<T extends Block>(
 	content: T | Statement | string,
 	statementType: { create: (content: string) => StatementPart }
@@ -150,4 +169,14 @@ export function spawnFromContentAndCreate<T extends Block, S extends Statement>(
 	} else {
 		return content as T;
 	}
+}
+
+/**
+ * Create a document block from a string.
+ * @param content The content of the block.
+ * @returns The block.
+ */
+export function block(content: string): DocumentBlock {
+	const statement = parse(content).parse();
+	return spawnBlock(statement) as DocumentBlock;
 }

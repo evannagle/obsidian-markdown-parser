@@ -134,6 +134,17 @@ export abstract class ScannerBase {
 		);
 	}
 
+	private _checkoutIndex = 0;
+
+	protected checkout(): void {
+		this._checkoutIndex = this.cursorIndex;
+	}
+
+	protected revertCheckout(): void {
+		this.cursorIndex = this._checkoutIndex;
+		this.char = this.charAt(this.cursorIndex, EOF);
+	}
+
 	/**
 	 * Clears the queued characters.
 	 * abcdefghijklmnopqrstuvwxyz
