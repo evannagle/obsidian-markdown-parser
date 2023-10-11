@@ -1,21 +1,29 @@
 {
-	"name": "markdown-parser",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"directories": {
-		"test": "tests"
-	},
-	"scripts": {
-		"test": "vitest"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"devDependencies": {
-		"vitest": "^0.34.3"
-	},
-	"dependencies": {
-		"chalk": "^5.3.0"
-	}
+  "name": "@evan.nagle/markdown-parser",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "Evan Nagle",
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "^0.34.3"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evannagle/obsidian-markdown-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evannagle/obsidian-markdown-parser/issues"
+  },
+  "homepage": "https://github.com/evannagle/obsidian-markdown-parser#readme",
+  "description": ""
 }
